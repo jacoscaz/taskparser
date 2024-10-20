@@ -1,0 +1,42 @@
+{
+  "name": "taskninja",
+  "version": "0.1.0-alpha.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "bin": {
+    "taskninja": "./dist/bin.js"
+  },
+  "type": "module",
+  "author": "Jacopo Scazzosi <jacopo@scazzosi.com>",
+  "license": "LGPL-3.0-only",
+  "description": "A CLI tool to parse tasks and worklogs out of Markdown documents and print them to standard output, either in tabular of CSV format. Supports tag-based sorting and filtering operating on both inline tags and frontmatter metadata.",
+  "homepage": "https://github.com/jacoscaz/taskninja",
+  "issues": "https://github.com/jacoscaz/taskninja/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jacoscaz/taskninja.git"
+  },
+  "dependencies": {
+    "argparse": "^2.0.1",
+    "columnify": "^1.6.0",
+    "csv-stringify": "^6.5.1",
+    "js-yaml": "^4.1.0",
+    "matcher": "^5.0.0",
+    "mdast-util-from-markdown": "^2.0.1",
+    "mdast-util-frontmatter": "^2.0.1",
+    "mdast-util-gfm": "^3.0.0",
+    "micromark-extension-frontmatter": "^2.0.0",
+    "micromark-extension-gfm": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/argparse": "^2.0.16",
+    "@types/columnify": "^1.5.4",
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.7.6",
+    "typescript": "^5.6.3"
+  }
+}
