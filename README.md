@@ -11,6 +11,12 @@ See the [post on the rationale behind taskninja on my blog][intro].
 
 [intro]: https://treesandrobots.com/2024/10/taskninja-keep-notes-and-tasks-together.html
 
+## Status
+
+Alpha software, though you could consider it a _bootstrapped_ task management
+app in that I use `taskninja` to manage its own development. Feedback from
+others would be invaluable to further shape its evolution.
+
 ## Example
 
 Given directory `/foo/bar` with a `20241010-baz.md` file having the following
