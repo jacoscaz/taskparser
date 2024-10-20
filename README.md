@@ -5,6 +5,12 @@ A CLI tool to parse tasks and worklogs out of Markdown documents and print
 them to standard output, either in tabular of CSV format. Supports sorting,
 filtering and tag-based metadata.
 
+## Introduction
+
+See the [post on the rationale behind taskninja on my blog][intro].
+
+[intro]: https://treesandrobots.com/2024/10/taskninja-keep-notes-and-tasks-together.html
+
 ## Example
 
 Given directory `/foo/bar` with a `20241010-baz.md` file having the following
@@ -195,3 +201,7 @@ Sorting expressions can be combined for nested sorting:
 ```
 foo(asc),bar(desc)
 ```
+
+## License
+
+Released under the LGPL v3.0 (`LGPL-3.0-only`) license.
