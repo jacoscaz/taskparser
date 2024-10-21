@@ -1,6 +1,6 @@
-src/**/*.*
-dist/tests/**/*.*
+src/**/*
+dist/tests/**/*
 .gitignore
 .github
 tsconfig.json
-tests/**/*.*
+tests/**/*
