@@ -199,7 +199,7 @@ Sorting syntax is as follows:
 
 ```
 foo(asc)      sorts tasks by the "foo" tag in ascending lexicographical order
-foo(desc)      sorts tasks by the "foo" tag in descending lexicographical order
+foo(desc)     sorts tasks by the "foo" tag in descending lexicographical order
 ```
 
 Sorting expressions can be combined for nested sorting:
