@@ -1,5 +1,6 @@
 src/**/*.*
 dist/tests/**/*.*
 .gitignore
+.github
 tsconfig.json
 tests/**/*.*
