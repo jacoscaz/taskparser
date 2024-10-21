@@ -4,8 +4,8 @@
   "main": "index.js",
   "scripts": {
     "test": "node --test ./dist/test-runner.js",
-    "build": "rm -r ./dist && tsc",
-    "watch": "rm -r ./dist && tsc -w"
+    "build": "rm -rf ./dist && tsc",
+    "watch": "rm -rf ./dist && tsc -w"
   },
   "bin": {
     "taskninja": "./dist/bin.js"
