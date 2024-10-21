@@ -1,0 +1,4 @@
+text             | done  | file      | date
+----             | ----  | ----      | ----
+a pending task   | false | simple.md |     
+a completed task | true  | simple.md |     

@@ -1,7 +1,3 @@
----
-project: foo
-client: bar
----
 
 - [ ] a pending task
 - [X] a completed task

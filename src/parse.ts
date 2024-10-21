@@ -89,6 +89,8 @@ const from_markdown_opts =  {
   mdastExtensions: [frontmatterFromMarkdown(['yaml']), gfmFromMarkdown()],
 };
 
+const DATE_IN_FILENAME_REGEXP = /(?:^|[^\d])(\d{8}|(?:\d{4}-\d{2}-\d{2}))(?:$|[^\d])/;
+
 export const parseFile = async (ctx: ParseFileContext, tasks: TaskSet, worklogs: WorklogSet) => {
   tasks.forEach((task) => {
     if (task.file === ctx.file) {
@@ -103,9 +105,9 @@ export const parseFile = async (ctx: ParseFileContext, tasks: TaskSet, worklogs:
   try {
     const data = await readFile(ctx.file, { encoding: 'utf8' });
     const root_node = fromMarkdown(data, from_markdown_opts);
-    const date_match = ctx.file.match(/(?:^|[^\d])(\d{8})(?:$|[^\d])/);
+    const date_match = ctx.file.match(DATE_IN_FILENAME_REGEXP);
     if (date_match) {
-      ctx.tags['date'] = date_match[1];
+      ctx.tags['date'] = date_match[1].replaceAll('-', '');
     }
     parseNode(root_node, ctx, tasks, worklogs);
   } catch (err) {
