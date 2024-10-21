@@ -37,5 +37,5 @@ export interface TagSortExpression extends BaseTagExpression {
 }
 
 export interface RenderItemsFn {
-  (items: Item[], show_tags: string[], raw_tags: boolean): string;
+  (items: Item[], show_tags: string[]): string;
 }

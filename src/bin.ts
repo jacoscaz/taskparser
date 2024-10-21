@@ -8,7 +8,7 @@ import { resolve } from 'node:path';
 import { ArgumentParser } from 'argparse';
 
 import { parseFolder, watchFolder } from './parse.js';
-import { renderCSV, renderTabular } from './render.js';
+import { renderCSV, renderJSON, renderTabular } from './render.js';
 
 import { 
   compileTagFilterExpressions, 
@@ -44,10 +44,11 @@ arg_parser.add_argument('-W', '--worklogs', {
   action: 'store_true',
   help: 'enable worklogs mode',
 });
-arg_parser.add_argument('--csv', {
+arg_parser.add_argument('-o', '--out', {
   required: false,
-  action: 'store_true',
-  help: 'enable CSV mode',
+  default: 'tabular',
+  choices: ['tabular', 'csv', 'json'],
+  help: 'set output format'
 });
 arg_parser.add_argument('path', {
   default: cwd(),
@@ -71,15 +72,26 @@ const renderItems = (items: Set<Item>) => {
   if (sorter) {
     as_arr.sort(sorter);
   }
-  console.log((cli_args.csv ? renderCSV : renderTabular)(as_arr, show_tags, cli_args.rawtags));
+  switch (cli_args.out) {
+    case 'json':
+      console.log(renderJSON(as_arr, show_tags));
+      break;
+    case 'csv':
+      console.log(renderCSV(as_arr, show_tags));
+      break;
+    case 'tabular':
+    default:
+      console.log(renderTabular(as_arr, show_tags));
+  }
 };
 
 if (cli_args.watch) {
-  if (!process.stdout.isTTY) {
+  const { stdout } = process;
+  if (!stdout.isTTY) {
     throw new Error('cannot use -w/--watch if the terminal is not a TTY');
   }
   for await (const { tasks, worklogs } of watchFolder(folder_path)) {
-    process.stdout.write('\x1bc');
+    stdout.write('\x1bc');
     renderItems(cli_args.worklogs ? worklogs : tasks);
   }  
 } else {

@@ -34,3 +34,8 @@ export const renderCSV: RenderItemsFn = (items, show_tags) => {
   }), { columns: show_tags, header: true });
 };
 
+export const renderJSON: RenderItemsFn = (items, show_tags) => {
+  return JSON.stringify(items.map((task) => {
+    return task.tags;
+  }));
+};
