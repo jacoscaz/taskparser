@@ -211,3 +211,4 @@ foo(asc),bar(desc)
 ## License
 
 Released under the LGPL v3.0 (`LGPL-3.0-only`) license.
+See [LICENSE.md](./LICENSE.md).
