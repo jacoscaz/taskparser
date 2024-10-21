@@ -1,6 +1,6 @@
 {
   "name": "taskninja",
-  "version": "0.1.0-alpha.1",
+  "version": "0.1.0-alpha.2",
   "main": "index.js",
   "scripts": {
     "test": "node --test ./dist/test-runner.js",
@@ -39,5 +39,15 @@
     "@types/node": "^22.7.6",
     "typescript": "^5.6.3"
   },
-  "keywords": ["markdown", "tasks", "todo", "task", "parse", "extract", "ninja", "tags", "frontmatter"]
+  "keywords": [
+    "markdown",
+    "tasks",
+    "todo",
+    "task",
+    "parse",
+    "extract",
+    "ninja",
+    "tags",
+    "frontmatter"
+  ]
 }
