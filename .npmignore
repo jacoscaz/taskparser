@@ -1,5 +1,5 @@
 src/**/*
-dist/tests/**/*
+dist/test-runner.js
 .gitignore
 .github
 tsconfig.json

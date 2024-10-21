@@ -1,4 +1,0 @@
-text             | done  | file                 | date    
-----             | ----  | ----                 | ----    
-a pending task   | false | 20240101-withdate.md | 20240101
-a completed task | true  | 20240101-withdate.md | 20240101

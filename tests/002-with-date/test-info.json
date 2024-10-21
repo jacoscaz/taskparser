@@ -1,0 +1,4 @@
+{
+  "description": "should tag tasks with the date taken from the filename, if present",
+  "argv": []
+}

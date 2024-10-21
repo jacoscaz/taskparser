@@ -1,0 +1,4 @@
+{
+  "description": "should parse inline tags",
+  "argv": ["-t", "text,date,foo"]
+}

@@ -3,9 +3,9 @@
   "version": "0.1.0-alpha.1",
   "main": "index.js",
   "scripts": {
-    "test": "node --test dist/tests/runner.js",
-    "build": "tsc",
-    "watch": "tsc -w"
+    "test": "node --test ./dist/test-runner.js",
+    "build": "rm -r ./dist && tsc",
+    "watch": "rm -r ./dist && tsc -w"
   },
   "bin": {
     "taskninja": "./dist/bin.js"

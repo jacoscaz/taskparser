@@ -1,0 +1,4 @@
+{
+  "description": "should parse frontmatter tags",
+  "argv": ["-t", "text,date,foo"]
+}
