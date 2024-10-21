@@ -1,0 +1,4 @@
+{
+  "description": "should let inline tags override frontmatter tags",
+  "argv": ["-t", "text,date,foo"]
+}
