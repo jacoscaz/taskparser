@@ -135,7 +135,7 @@ const parseFolderHelper = async (ctx: ParseContext, target_path: string, tasks: 
   } else if (target_stats.isDirectory()) {
     const child_names = await readdir(target_path);
     for (const child_name of child_names) {
-      const child_path = resolve(ctx.folder, child_name);
+      const child_path = resolve(target_path, child_name);
       await parseFolderHelper(ctx, child_path, tasks, worklogs);
     }
   }
