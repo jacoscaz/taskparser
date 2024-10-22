@@ -89,12 +89,15 @@ $ taskparser -t text,project,client,file,date /foo/bar
 
 `taskparser` auto-generates the following tags:
 
-| tag | description | 
-| --- | --- |
-| `text` | the textual content of the task (first line only) |
-| `file` | the file that contains the task |
-| `date` | the date of creation of the task |
-| `done` | whether the task has been marked as done |
+| tag | description | internal | 
+| --- | --- | --- |
+| `text` | the textual content of the task (first line only) | yes |
+| `file` | the file that contains the task | yes |
+| `date` | the date of creation of the task | no |
+| `done` | whether the task has been marked as done | yes |
+
+Auto-genereated tags considered _internal_ cannot be overridden via YAML
+frontmatter or inline tags.
 
 ### Inline tags
 
