@@ -1,5 +1,5 @@
 {
-  "name": "taskninja",
+  "name": "taskparser",
   "version": "0.1.0-alpha.2",
   "main": "index.js",
   "scripts": {
@@ -8,17 +8,17 @@
     "watch": "rm -rf ./dist && tsc -w"
   },
   "bin": {
-    "taskninja": "./dist/bin.js"
+    "taskparser": "./dist/bin.js"
   },
   "type": "module",
   "author": "Jacopo Scazzosi <jacopo@scazzosi.com>",
   "license": "LGPL-3.0-only",
   "description": "A CLI tool to parse tasks and worklogs out of Markdown documents and print them to standard output, either in tabular of CSV format. Supports tag-based sorting and filtering operating on both inline tags and frontmatter metadata.",
-  "homepage": "https://github.com/jacoscaz/taskninja",
-  "issues": "https://github.com/jacoscaz/taskninja/issues",
+  "homepage": "https://github.com/jacoscaz/taskparser",
+  "issues": "https://github.com/jacoscaz/taskparser/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jacoscaz/taskninja.git"
+    "url": "https://github.com/jacoscaz/taskparser.git"
   },
   "dependencies": {
     "argparse": "^2.0.1",

@@ -12,7 +12,7 @@ const bin_path = resolve(__dirname, 'bin.js');
 
 const tests_dir_path = resolve(__dirname, '..', 'tests');
 
-const taskninja = async (argv: string[]): Promise<string> => {
+const taskparser = async (argv: string[]): Promise<string> => {
   return new Promise((resolve, reject) => {
     const child = spawn(`node ${bin_path}`, argv, { shell: true });
     let stdout = '';
@@ -42,10 +42,10 @@ for (const item of await readdir(tests_dir_path)) {
   tests.push({ ...test_info, stdout, path: this_test_path });  
 }
 
-describe('taskninja', () => {
+describe('taskparser', () => {
   tests.forEach((test) => {
     it(test.description, async () => {
-      const stdout = await taskninja([...test.argv, test.path]);
+      const stdout = await taskparser([...test.argv, test.path]);
       deepStrictEqual(stdout, test.stdout);
     });
   })
