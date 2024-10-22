@@ -21,19 +21,21 @@ export interface ParseContext {
 interface ParseFileContext extends ParseContext {
   file: string;
   tags: TagMap;
+  internal_tags: TagMap;
 }
 
 const parseTaskNode = (node: Node, task: Task, worklogs: WorklogSet) => {
   if (node.type === 'text') {
-    if (!('text' in task.tags)) {
-      task.tags.text = (node as any).value;
+    if (!('text' in task.internal_tags)) {
+      task.internal_tags.text = (node as any).value;
     }
     const node_tags: TagMap = Object.create(null); 
     extractTagsFromText((node as any).value, node_tags);
     if ('worklog' in node_tags) {
       const worklog: Worklog = {
         task,
-        tags: Object.assign({}, task.tags, node_tags),
+        tags: { ...task.tags, ...node_tags },
+        internal_tags: { ...task.internal_tags },
         file: task.file,
       };
       task.worklogs.push(worklog);
@@ -59,12 +61,15 @@ const parseParentNode = (node: Parent, ctx: ParseFileContext, tasks: TaskSet, wo
 
 const parseListItemNode = (node: ListItem, ctx: ParseFileContext, tasks: TaskSet, worklogs: WorklogSet) => {
   if (typeof node.checked === 'boolean') {
-    const tags: TagMap = {};
-    Object.assign(tags, ctx.tags);
-    const task: Task = { tags, file: ctx.file, worklogs: [] };
+    const tags: TagMap = { ...ctx.tags };
+    const internal_tags: TagMap = {
+      ...ctx.internal_tags,
+      line: String(node.position!.start.line),
+      done: String(node.checked),
+    };
+    const task: Task = { tags, internal_tags, file: ctx.file, worklogs: [] };
     parseTaskNode(node, task, worklogs);
-    tags.line = String(node.position!.start.line);
-    tags.done = String(node.checked);
+    Object.assign(tags, internal_tags);
     tasks.add(task);
   }
 };
@@ -130,7 +135,12 @@ const parseFolderHelper = async (ctx: ParseContext, target_path: string, tasks: 
   } else if (target_stats.isFile()) {
     if (target_path.endsWith('.md')) {
       const target_rel_path = relative(ctx.folder, target_path);
-      await parseFile({ ...ctx, file: target_path, tags: { file: target_rel_path } }, tasks, worklogs);
+      await parseFile({ 
+        ...ctx, 
+        file: target_path, 
+        tags: {}, 
+        internal_tags: { file: target_rel_path },
+      }, tasks, worklogs);
     }
   }
 };
@@ -159,7 +169,12 @@ export async function* watchFolder(folder_path: string): AsyncIterable<ParseResu
       switch (evt.eventType) {
         case 'change':
         case 'rename':
-          await parseFile({ ...ctx, file: file_path, tags: { file: evt.filename } }, tasks, worklogs);
+          await parseFile({ 
+            ...ctx, 
+            file: file_path, 
+            internal_tags: { file: evt.filename },
+            tags: {},
+          }, tasks, worklogs);
           yield { tasks, worklogs };
           break;
       }

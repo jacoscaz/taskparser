@@ -1,4 +1,4 @@
 {
-  "description": "should parse inline tags",
+  "description": "should prevent overriding of internal tags",
   "argv": ["-t", "text,file,line"]
 }

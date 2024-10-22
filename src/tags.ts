@@ -8,8 +8,8 @@ const TAG_SEARCH_REGEXP = /\#([a-z0-9]+)(?:\(([^),]+)\))/gi;
 const TAG_CHECK_REGEXP = /([a-z0-9]+)(?:\(([^),]+)\))/i;
 
 export const extractTagsFromText = (raw: string, tags: TagMap) => {
-  for (const [, name, value] of raw.matchAll(TAG_SEARCH_REGEXP)) {
-    tags[name] = value ?? 'true';
+  for (const [, key, value] of raw.matchAll(TAG_SEARCH_REGEXP)) {
+    tags[key] = value ?? 'true';
   }
 };
 

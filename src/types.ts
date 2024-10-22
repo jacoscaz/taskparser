@@ -3,6 +3,7 @@ export type TagMap = Record<string, string>;
 
 export interface Item {
   tags: TagMap;
+  internal_tags: TagMap;
   file: string;  
 }
 
