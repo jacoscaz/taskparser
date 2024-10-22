@@ -124,23 +124,19 @@ export const parseFile = async (ctx: ParseFileContext, tasks: TaskSet, worklogs:
 
 const parseFolderHelper = async (ctx: ParseContext, target_path: string, tasks: TaskSet, worklogs: WorklogSet) => {
   const target_stats = await stat(target_path);
-  if (target_stats.isDirectory()) {
+  if (target_stats.isFile() && target_path.endsWith('.md')) {
+    const target_rel_path = relative(ctx.folder, target_path);
+    await parseFile({ 
+      ...ctx, 
+      file: target_path, 
+      tags: {}, 
+      internal_tags: { file: target_rel_path },
+    }, tasks, worklogs);
+  } else if (target_stats.isDirectory()) {
     const child_names = await readdir(target_path);
     for (const child_name of child_names) {
-      if (child_name.endsWith('md')) {
-        const child_path = resolve(ctx.folder, child_name);
-        await parseFolderHelper(ctx, child_path, tasks, worklogs);
-      }
-    }
-  } else if (target_stats.isFile()) {
-    if (target_path.endsWith('.md')) {
-      const target_rel_path = relative(ctx.folder, target_path);
-      await parseFile({ 
-        ...ctx, 
-        file: target_path, 
-        tags: {}, 
-        internal_tags: { file: target_rel_path },
-      }, tasks, worklogs);
+      const child_path = resolve(ctx.folder, child_name);
+      await parseFolderHelper(ctx, child_path, tasks, worklogs);
     }
   }
 };
