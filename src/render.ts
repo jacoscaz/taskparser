@@ -36,6 +36,10 @@ export const renderCSV: RenderItemsFn = (items, show_tags) => {
 
 export const renderJSON: RenderItemsFn = (items, show_tags) => {
   return JSON.stringify(items.map((task) => {
-    return task.tags;
+    const entry: Record<string, any> = {};
+    show_tags.forEach((tag) => {
+      entry[tag] = task.tags[tag];
+    });
+    return entry;
   }));
 };
