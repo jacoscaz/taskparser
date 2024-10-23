@@ -186,6 +186,16 @@ foo($=bar)       matches tasks with tag "foo" ending with "bar"
 foo(*=bar*)      matches tasks with tag "foo" matching the pattern "bar*"
 ```
 
+Additionally, the following operators may be used to filter tasks based on the
+lexicographical ordering of tag values:
+
+```
+foo(>=bar)       matches tasks with tag "foo" greater than or equal to "bar"
+foo(<=bar)       matches tasks with tag "foo" lower than or equal to "bar"
+foo(>bar)        matches tasks with tag "foo" greater than "bar"
+foo(<bar)        matches tasks with tag "foo" lower than "bar"
+```
+
 Filtering expressions can be combined:
 
 ```
