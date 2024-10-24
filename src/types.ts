@@ -12,7 +12,7 @@ export interface Task extends Item {
 }
 
 export interface Worklog extends Item {
-  task: Task;
+  task: Task | null;
 }
 
 export type TaskSet = Set<Task>;

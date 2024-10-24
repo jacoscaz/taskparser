@@ -223,6 +223,31 @@ Sorting expressions can be combined for nested sorting:
 foo(asc),bar(desc)
 ```
 
+## Worklogs
+
+In addition to tasks, `taskparser` can also collect and display _worklogs_.
+A worklog is a list item detailing a given amount of hours spent working.
+
+```markdown
+- WL:3h this is a simple worklog
+```
+
+Worklogs can be tagged, filtered and sorted exactly as tasks. For each worklog
+it encounters, `taskparser` automatically generates the following tags:
+
+| tag | description | internal | 
+| --- | --- | --- |
+| `text` | the textual content of the task (first line only) | yes |
+| `file` | the file that contains the task | yes |
+| `date` | the date of creation of the task | no |
+| `hours` | amount of hours logged | yes |
+
+The `-l` or `--worklogs` flag may be used to enable worklog mode:
+
+```
+taskparser -l -t text,hours,file,date"
+```
+
 ## License
 
 Released under the LGPL v3.0 (`LGPL-3.0-only`) license.

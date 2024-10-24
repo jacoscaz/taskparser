@@ -23,7 +23,6 @@ const arg_parser = new ArgumentParser({
 
 arg_parser.add_argument('-t', '--tags', {
   required: false,
-  default: 'text,done,file,date',
   help: 'comma-separated list of tags to show',
 });
 arg_parser.add_argument('-f', '--filter', {
@@ -39,7 +38,7 @@ arg_parser.add_argument('-w', '--watch', {
   action: 'store_true',
   help: 'enable watch mode'
 });
-arg_parser.add_argument('-W', '--worklogs', {
+arg_parser.add_argument('-l', '--worklogs', {
   required: false,
   action: 'store_true',
   help: 'enable worklogs mode',
@@ -62,7 +61,11 @@ const folder_path = resolve(cwd(), cli_args.path);
 const sorter = cli_args.sort ? compileTagSortExpressions(parseTagSortExpressions(cli_args.sort)) : null;
 const filter = cli_args.filter ? compileTagFilterExpressions(parseTagFilterExpressions(cli_args.filter)) : null;
 
-const show_tags = cli_args.tags.split(',');
+const show_tags = cli_args.tags 
+  ? cli_args.tags.split(',') 
+  : cli_args.worklogs 
+    ? ['text', 'hours', 'file', 'date'] 
+    : ['text', 'done', 'file', 'date'];
 
 const renderItems = (items: Set<Item>) => {
   let as_arr = Array.from(items);
