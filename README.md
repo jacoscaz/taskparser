@@ -52,10 +52,9 @@ npm i -g taskparser
 
 ```
 $ taskparser -h
-usage: taskparser [-h] [-t TAGS] [-f FILTER] [-s SORT] [-w] [-W] [-o {tabular,csv,json}] path
+usage: taskparser [-h] [-t TAGS] [-f FILTER] [-s SORT] [-w] [-l] [-o {tabular,csv,json}] path
 
-A CLI tool to parse, sort and filter tasks and worklogs out of Markdown documents and print
-them to standard output, either in tabular of CSV format.
+A CLI tool to parse, sort and filter tasks and worklogs out of Markdown documents and print them to standard output, either in tabular of CSV format.
 
 positional arguments:
   path                  working directory
@@ -67,7 +66,7 @@ optional arguments:
                         filtering expression such as: foo(=bar)
   -s SORT, --sort SORT  sorting expression such as: foo(asc)
   -w, --watch           enable watch mode
-  -W, --worklogs        enable worklogs mode
+  -l, --worklogs        enable worklogs mode
   -o {tabular,csv,json}, --out {tabular,csv,json}
                         set output format
 ```
