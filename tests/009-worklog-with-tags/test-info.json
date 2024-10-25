@@ -1,0 +1,4 @@
+{
+  "description": "should parse worklog tags (frontmatter, inline, overridden)",
+  "argv": ["-l", "-t", "text,hours,file,foo"]
+}
