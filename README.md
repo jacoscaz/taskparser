@@ -13,9 +13,9 @@ See the [post on the rationale behind taskparser on my blog][intro].
 
 ## Status
 
-Alpha software, though you could consider it a _bootstrapped_ task management
-app in that I use `taskparser` to manage its own development. Feedback from
-others would be invaluable to further shape its evolution.
+`taskparser` is currently in beta. Feedback from others would be invaluable to
+further shape its evolution. I consider it a _bootstrapped_ task management app
+in that I use `taskparser` to manage `taskparser`'s own development.
 
 ## Example
 
