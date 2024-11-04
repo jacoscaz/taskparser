@@ -44,7 +44,7 @@ const parseTextNode = (node: Text, ctx: ParseFileContext, curr_task: Task | null
     let match;
     if (!('text' in curr_wlog.internal_tags) && (match = node.value.match(WL_REGEXP))) {
       const [full, hours] = match;
-      const text = node.value.slice(full.length);
+      const text = node.value.slice(full.length).trim();
       curr_wlog.internal_tags.hours = hours;
       curr_wlog.internal_tags.text = text;
       extractTagsFromText(text, curr_wlog.tags);
@@ -54,7 +54,7 @@ const parseTextNode = (node: Text, ctx: ParseFileContext, curr_task: Task | null
   }
   if (curr_task) {
     if (!('text' in curr_task.internal_tags)) {
-      curr_task.internal_tags.text = node.value;
+      curr_task.internal_tags.text = node.value.trim();
     }
     extractTagsFromText(node.value, curr_task.tags);
   }

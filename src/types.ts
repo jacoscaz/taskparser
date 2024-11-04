@@ -37,6 +37,8 @@ export interface TagSortExpression extends BaseTagExpression {
   order: 'asc' | 'desc';
 }
 
+export interface RenderOpts {}
+
 export interface RenderItemsFn {
-  (items: Item[], show_tags: string[]): string;
+  (items: Item[], show_tags: string[], opts: RenderOpts): string;
 }

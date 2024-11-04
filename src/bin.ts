@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import type { Item } from './types.js';
+import type { Item, RenderOpts } from './types.js';
 
 import { cwd } from 'node:process';
 import { resolve } from 'node:path';
@@ -49,6 +49,10 @@ arg_parser.add_argument('-o', '--out', {
   choices: ['tabular', 'csv', 'json'],
   help: 'set output format'
 });
+arg_parser.add_argument('-C', '--column-width', {
+  required: false,
+  help: 'set wrapping or truncation for tag: foo(25t)'
+});
 arg_parser.add_argument('path', {
   default: cwd(),
   help: 'working directory',
@@ -67,6 +71,10 @@ const show_tags = cli_args.tags
     ? ['text', 'hours', 'file', 'date'] 
     : ['text', 'done', 'file', 'date'];
 
+const render_opts: RenderOpts = { 
+  
+};
+
 const renderItems = (items: Set<Item>) => {
   let as_arr = Array.from(items);
   if (filter) {
@@ -77,14 +85,14 @@ const renderItems = (items: Set<Item>) => {
   }
   switch (cli_args.out) {
     case 'json':
-      console.log(renderJSON(as_arr, show_tags));
+      console.log(renderJSON(as_arr, show_tags, render_opts));
       break;
     case 'csv':
-      console.log(renderCSV(as_arr, show_tags));
+      console.log(renderCSV(as_arr, show_tags, render_opts));
       break;
     case 'tabular':
     default:
-      console.log(renderTabular(as_arr, show_tags));
+      console.log(renderTabular(as_arr, show_tags, render_opts));
   }
 };
 
