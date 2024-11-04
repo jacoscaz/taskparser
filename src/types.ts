@@ -37,7 +37,10 @@ export interface TagSortExpression extends BaseTagExpression {
   order: 'asc' | 'desc';
 }
 
-export interface RenderOpts {}
+export interface RenderOpts {
+  /** terminal width (number of char columns) */
+  terminal_width: number;
+}
 
 export interface RenderItemsFn {
   (items: Item[], show_tags: string[], opts: RenderOpts): string;

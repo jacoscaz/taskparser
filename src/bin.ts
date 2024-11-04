@@ -2,8 +2,11 @@
 
 import type { Item, RenderOpts } from './types.js';
 
+import { fileURLToPath } from 'node:url';
 import { cwd } from 'node:process';
 import { resolve } from 'node:path';
+import { readFileSync } from 'node:fs';
+
 
 import { ArgumentParser } from 'argparse';
 
@@ -16,6 +19,9 @@ import {
   parseTagFilterExpressions, 
   parseTagSortExpressions,
 } from './tags.js';
+
+const pkg_path = resolve(fileURLToPath(import.meta.url), '..', '..', 'package.json');
+const pkg_version = JSON.parse(readFileSync(pkg_path, 'utf8')).version;
 
 const arg_parser = new ArgumentParser({
   description: 'A CLI tool to parse, sort and filter tasks and worklogs out of Markdown documents and print them to standard output, either in tabular of CSV format.',
@@ -49,9 +55,14 @@ arg_parser.add_argument('-o', '--out', {
   choices: ['tabular', 'csv', 'json'],
   help: 'set output format'
 });
-arg_parser.add_argument('-C', '--column-width', {
+arg_parser.add_argument('-c', '--columns', {
   required: false,
-  help: 'set wrapping or truncation for tag: foo(25t)'
+  default: String(process.stdout.columns),
+  help: 'override detected terminal width (in character columns)'
+});
+arg_parser.add_argument('-v', '--version', {
+  action: 'version',
+  version: pkg_version,
 });
 arg_parser.add_argument('path', {
   default: cwd(),
@@ -72,7 +83,7 @@ const show_tags = cli_args.tags
     : ['text', 'done', 'file', 'date'];
 
 const render_opts: RenderOpts = { 
-  
+  terminal_width: parseInt(cli_args.columns),
 };
 
 const renderItems = (items: Set<Item>) => {

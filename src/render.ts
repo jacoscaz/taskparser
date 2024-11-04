@@ -62,9 +62,9 @@ export const renderTabular: RenderItemsFn = (items, show_tags, opts) => {
   if (text_tag_i > -1) {
     const line_length = lengths.reduce((acc, l) => acc + l, 0) 
       + (column_delimiter.length * (lengths.length - 1));
-    if (line_length >= process.stdout.columns) {
+    if (line_length >= opts.terminal_width) {
       const text_length = Math.max('text'.length, lengths[text_tag_i]
-        - (line_length - process.stdout.columns));
+        - (line_length - opts.terminal_width));
       values[text_tag_i] = values[text_tag_i]
         .map(v => wcswidth(v) > text_length ? wcslice(v, 0, text_length - 1) + '…' : v);
       lengths[text_tag_i] = text_length;
@@ -78,7 +78,7 @@ export const renderTabular: RenderItemsFn = (items, show_tags, opts) => {
       show_tags.map((tag, t) => values[t][i].padEnd(lengths[t], ' '))
         .join(column_delimiter), 
       0, 
-      process.stdout.columns,
+      opts.terminal_width,
     );
   }
 
