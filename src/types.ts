@@ -19,11 +19,6 @@ export type TaskSet = Set<Task>;
 
 export type WorklogSet = Set<Worklog>;
 
-export interface ParseResult {
-  tasks: TaskSet;
-  worklogs: WorklogSet;
-}
-
 export interface BaseTagExpression {
   tag: string;
 }
@@ -44,4 +39,16 @@ export interface RenderOpts {
 
 export interface RenderItemsFn {
   (items: Item[], show_tags: string[], opts: RenderOpts): string;
+}
+
+export interface ParseContext {
+  folder: string;
+  tasks: TaskSet;
+  worklogs: WorklogSet;
+}
+
+export interface ParseFileContext extends ParseContext {
+  file: string;
+  tags: TagMap;
+  internal_tags: TagMap;
 }

@@ -1,6 +1,6 @@
 
 import type { Parent, Node, Yaml, ListItem, Text } from 'mdast';
-import type { TagMap, Task, TaskSet, Worklog, WorklogSet, ParseResult } from './types.js';
+import type { TagMap, Task, Worklog, ParseContext, ParseFileContext } from './types.js';
 
 import { readdir, readFile, watch, stat } from 'node:fs/promises';
 import { resolve, relative } from 'node:path';
@@ -13,17 +13,6 @@ import { gfmFromMarkdown } from 'mdast-util-gfm';
 import { frontmatterFromMarkdown } from 'mdast-util-frontmatter';
 
 import { extractTagsFromText, extractTagsFromYaml } from './tags.js';
-
-export interface ParseContext {
-  folder: string;
-}
-
-interface ParseFileContext extends ParseContext {
-  file: string;
-  tags: TagMap;
-  internal_tags: TagMap;
-}
-
 
 const WL_REGEXP = /^WL:(\d{1,2}(?:\.\d{1,2})?)[hH]\s/;
 
@@ -61,7 +50,7 @@ const parseTextNode = (node: Text, ctx: ParseFileContext, curr_task: Task | null
 };
 
 
-const parseListItemNode = (node: ListItem, ctx: ParseFileContext, curr_task: Task | null, curr_wlog: Worklog | null, tasks: TaskSet, worklogs: WorklogSet) => {
+const parseListItemNode = (node: ListItem, ctx: ParseFileContext, curr_task: Task | null, curr_wlog: Worklog | null) => {
   if (!curr_task && typeof node.checked === 'boolean') {
     const tags: TagMap = { ...ctx.tags };
     const internal_tags: TagMap = {
@@ -70,9 +59,9 @@ const parseListItemNode = (node: ListItem, ctx: ParseFileContext, curr_task: Tas
       done: String(node.checked),
     };
     const task: Task = { tags, internal_tags, file: ctx.file, worklogs: [] };
-    parseParentNode(node as Parent, ctx, task, curr_wlog, tasks, worklogs);
+    parseParentNode(node as Parent, ctx, task, curr_wlog);
     Object.assign(tags, internal_tags);
-    tasks.add(task);
+    ctx.tasks.add(task);
   } else if (!curr_wlog && isListNodeWorklog(node)) {
     const tags: TagMap = { ...ctx.tags };
     const internal_tags: TagMap = {
@@ -81,34 +70,34 @@ const parseListItemNode = (node: ListItem, ctx: ParseFileContext, curr_task: Tas
       done: String(node.checked),
     };
     const worklog: Worklog = { tags, internal_tags, file: ctx.file, task: curr_task };
-    parseParentNode(node as Parent, ctx, curr_task, worklog, tasks, worklogs);
+    parseParentNode(node as Parent, ctx, curr_task, worklog);
     Object.assign(tags, internal_tags);
-    worklogs.add(worklog);
+    ctx.worklogs.add(worklog);
   } else {
-    parseParentNode(node, ctx, curr_task, curr_wlog, tasks, worklogs);
+    parseParentNode(node, ctx, curr_task, curr_wlog);
   }
 };
 
-const parseParentNode = (node: Parent, ctx: ParseFileContext, curr_task: Task | null, curr_wlog: Worklog | null, tasks: TaskSet, worklogs: WorklogSet) => {
+const parseParentNode = (node: Parent, ctx: ParseFileContext, curr_task: Task | null, curr_wlog: Worklog | null) => {
   node.children.forEach((node) => {
-    parseNode(node, ctx, curr_task, curr_wlog, tasks, worklogs); 
+    parseNode(node, ctx, curr_task, curr_wlog); 
   });
 };
 
-const parseNode = (node: Node, ctx: ParseFileContext, curr_task: Task | null, curr_wlog: Worklog | null, tasks: TaskSet, worklogs: WorklogSet) => {
+const parseNode = (node: Node, ctx: ParseFileContext, curr_task: Task | null, curr_wlog: Worklog | null) => {
   switch (node.type) {
     case 'yaml': 
       extractTagsFromYaml((node as Yaml).value, ctx.tags);
       break;
     case 'listItem': 
-      parseListItemNode(node as ListItem, ctx, curr_task, curr_wlog, tasks, worklogs); 
+      parseListItemNode(node as ListItem, ctx, curr_task, curr_wlog); 
       break;
     case 'text':
       parseTextNode(node as Text, ctx, curr_task, curr_wlog);
       break;
     default:
       if ('children' in node) {
-        parseParentNode(node as Parent, ctx, curr_task, curr_wlog, tasks, worklogs);
+        parseParentNode(node as Parent, ctx, curr_task, curr_wlog);
       }
   }
 };
@@ -120,26 +109,25 @@ const from_markdown_opts =  {
 
 const DATE_IN_FILENAME_REGEXP = /(?:^|[^\d])(\d{8}|(?:\d{4}-\d{2}-\d{2}))(?:$|[^\d])/;
 
-export const parseFile = async (ctx: ParseFileContext, tasks: TaskSet, worklogs: WorklogSet) => {
-  tasks.forEach((task) => {
+export const parseFile = async (ctx: ParseFileContext) => {
+  ctx.tasks.forEach((task) => {
     if (task.file === ctx.file) {
-      tasks.delete(task);
+      ctx.tasks.delete(task);
     }
   });
-  worklogs.forEach((worklog) => {
+  ctx.worklogs.forEach((worklog) => {
     if (worklog.file === ctx.file) {
-      worklogs.delete(worklog);
+      ctx.worklogs.delete(worklog);
     }
   });
   try {
     const data = await readFile(ctx.file, { encoding: 'utf8' });
     const root_node = fromMarkdown(data, from_markdown_opts);
-    // console.log(JSON.stringify(root_node, null, 2));
     const date_match = ctx.file.match(DATE_IN_FILENAME_REGEXP);
     if (date_match) {
       ctx.tags['date'] = date_match[1].replaceAll('-', '');
     }
-    parseNode(root_node, ctx, null, null, tasks, worklogs);
+    parseNode(root_node, ctx, null, null);
   } catch (err) {
     if ((err as any).code !== 'ENOENT') {
       throw err;
@@ -147,7 +135,7 @@ export const parseFile = async (ctx: ParseFileContext, tasks: TaskSet, worklogs:
   }
 };
 
-const parseFolderHelper = async (ctx: ParseContext, target_path: string, tasks: TaskSet, worklogs: WorklogSet) => {
+const parseFolderHelper = async (ctx: ParseContext, target_path: string) => {
   const target_stats = await stat(target_path);
   if (target_stats.isFile() && target_path.endsWith('.md')) {
     const target_rel_path = relative(ctx.folder, target_path);
@@ -156,34 +144,35 @@ const parseFolderHelper = async (ctx: ParseContext, target_path: string, tasks: 
       file: target_path, 
       tags: {}, 
       internal_tags: { file: target_rel_path },
-    }, tasks, worklogs);
+    });
   } else if (target_stats.isDirectory()) {
     const child_names = await readdir(target_path);
     for (const child_name of child_names) {
       const child_path = resolve(target_path, child_name);
-      await parseFolderHelper(ctx, child_path, tasks, worklogs);
+      await parseFolderHelper(ctx, child_path);
     }
   }
 };
 
-export const parseFolder = async (folder_path: string): Promise<ParseResult> => {
+export const parseFolder = async (folder_path: string): Promise<ParseContext> => {
   const ctx: ParseContext = {
     folder: folder_path,
+    tasks: new Set(),
+    worklogs: new Set(),
   };
-  const tasks: TaskSet = new Set();
-  const worklogs: WorklogSet = new Set();
-  await parseFolderHelper(ctx, folder_path, tasks, worklogs);
-  return { tasks, worklogs };
+
+  await parseFolderHelper(ctx, folder_path);
+  return ctx;
 };
 
-export async function* watchFolder(folder_path: string): AsyncIterable<ParseResult> {
+export async function* watchFolder(folder_path: string): AsyncIterable<ParseContext> {
   const ctx: ParseContext = {
     folder: folder_path,
+    tasks: new Set(),
+    worklogs: new Set(),
   };
-  const tasks: TaskSet = new Set();
-  const worklogs: WorklogSet = new Set();
-  await parseFolderHelper(ctx, folder_path, tasks, worklogs);
-  yield { tasks, worklogs };
+  await parseFolderHelper(ctx, folder_path);
+  yield ctx;
   for await (const evt of watch(ctx.folder)) {
     if (evt.filename) {
       const file_path = resolve(ctx.folder, evt.filename);
@@ -195,8 +184,8 @@ export async function* watchFolder(folder_path: string): AsyncIterable<ParseResu
             file: file_path, 
             internal_tags: { file: evt.filename },
             tags: {},
-          }, tasks, worklogs);
-          yield { tasks, worklogs };
+          });
+          yield ctx;
           break;
       }
     }
