@@ -25,7 +25,7 @@
     "csv-stringify": "^6.5.1",
     "js-yaml": "^4.1.0",
     "matcher": "^5.0.0",
-    "mdast-util-from-markdown": "^2.0.1",
+    "mdast-util-from-markdown": "^2.0.2",
     "mdast-util-frontmatter": "^2.0.1",
     "mdast-util-gfm": "^3.0.0",
     "micromark-extension-frontmatter": "^2.0.0",
@@ -33,9 +33,9 @@
     "simple-wcswidth": "^1.0.1"
   },
   "devDependencies": {
-    "@types/argparse": "^2.0.16",
+    "@types/argparse": "^2.0.17",
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^22.7.6",
+    "@types/node": "^22.9.0",
     "typescript": "^5.6.3"
   },
   "keywords": [
