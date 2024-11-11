@@ -38,7 +38,7 @@ export interface RenderOpts {
 }
 
 export interface RenderItemsFn {
-  (items: Item[], show_tags: string[], opts: RenderOpts): string;
+  (items: Item[], show_tags: string[], opts: RenderOpts): void;
 }
 
 export interface ParseContext {

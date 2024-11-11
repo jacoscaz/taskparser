@@ -7,11 +7,12 @@ import { cwd } from 'node:process';
 import { resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
 
-
 import { ArgumentParser } from 'argparse';
 
 import { parseFolder, watchFolder } from './parse.js';
-import { renderCSV, renderJSON, renderTabular } from './render.js';
+import { renderCSV } from './renderers/csv.js';
+import { renderJSON } from './renderers/json.js';
+import { renderTabular } from './renderers/table.js';
 
 import { 
   compileTagFilterExpressions, 
@@ -31,39 +32,47 @@ arg_parser.add_argument('-t', '--tags', {
   required: false,
   help: 'comma-separated list of tags to show',
 });
+
 arg_parser.add_argument('-f', '--filter', {
   required: false,
   help: 'filtering expression such as: foo(=bar)'
 });
+
 arg_parser.add_argument('-s', '--sort', {
   required: false,
   help: 'sorting expression such as: foo(asc)'
 });
+
 arg_parser.add_argument('-w', '--watch', {
   required: false,
   action: 'store_true',
   help: 'enable watch mode'
 });
+
 arg_parser.add_argument('-l', '--worklogs', {
   required: false,
   action: 'store_true',
   help: 'enable worklogs mode',
 });
+
 arg_parser.add_argument('-o', '--out', {
   required: false,
   default: 'tabular',
-  choices: ['tabular', 'csv', 'json'],
+  choices: ['table', 'csv', 'json'],
   help: 'set output format'
 });
+
 arg_parser.add_argument('-c', '--columns', {
   required: false,
   default: String(process.stdout.columns),
   help: 'override detected terminal width (in character columns)'
 });
+
 arg_parser.add_argument('-v', '--version', {
   action: 'version',
   version: pkg_version,
 });
+
 arg_parser.add_argument('path', {
   default: cwd(),
   help: 'working directory',
@@ -96,14 +105,14 @@ const renderItems = (items: Set<Item>) => {
   }
   switch (cli_args.out) {
     case 'json':
-      console.log(renderJSON(as_arr, show_tags, render_opts));
+      renderJSON(as_arr, show_tags, render_opts);
       break;
     case 'csv':
-      console.log(renderCSV(as_arr, show_tags, render_opts));
+      renderCSV(as_arr, show_tags, render_opts);
       break;
-    case 'tabular':
+    case 'table':
     default:
-      console.log(renderTabular(as_arr, show_tags, render_opts));
+      renderTabular(as_arr, show_tags, render_opts);
   }
 };
 
