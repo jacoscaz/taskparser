@@ -1,5 +1,5 @@
-text                    | hours | file                          | foo
-----                    | ----- | ----                          | ---
-first worklog #foo(baz) | 2     | 20241024-worklog-with-tags.md | baz
-second worklog          | 3     | 20241024-worklog-with-tags.md | bar
-third worklog           | 1     | 20241024-worklog-with-tags.md | bin
+text                    | h | file                          | foo
+----                    | - | ----                          | ---
+first worklog #foo(baz) | 2 | 20241024-worklog-with-tags.md | baz
+second worklog          | 3 | 20241024-worklog-with-tags.md | bar
+third worklog           | 1 | 20241024-worklog-with-tags.md | bin

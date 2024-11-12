@@ -1,6 +1,6 @@
 
 import type { Parent, Node, Yaml, ListItem, Text } from 'mdast';
-import type { TagMap, Task, Worklog, ParseContext, ParseFileContext } from './types.js';
+import type { TagMap, Task, Worklog, ParseContext, ParseFileContext, InternalTagMap } from './types.js';
 
 import { readdir, readFile, watch, stat } from 'node:fs/promises';
 import { resolve, relative } from 'node:path';
@@ -56,10 +56,10 @@ const parseTextNode = (node: Text, ctx: ParseFileContext, curr_task: Task | null
 const parseListItemNode = (node: ListItem, ctx: ParseFileContext, curr_task: Task | null, curr_wlog: Worklog | null) => {
   if (!curr_task && typeof node.checked === 'boolean') {
     const tags: TagMap = { ...ctx.tags };
-    const internal_tags: TagMap = {
+    const internal_tags: InternalTagMap = {
       ...ctx.internal_tags,
       line: String(node.position!.start.line),
-      done: String(node.checked),
+      checked: String(node.checked),
     };
     const task: Task = { tags, internal_tags, file: ctx.file, worklogs: [] };
     parseParentNode(node as Parent, ctx, task, curr_wlog);
@@ -70,7 +70,6 @@ const parseListItemNode = (node: ListItem, ctx: ParseFileContext, curr_task: Tas
     const internal_tags: TagMap = {
       ...ctx.internal_tags,
       line: String(node.position!.start.line),
-      done: String(node.checked),
     };
     const worklog: Worklog = { tags, internal_tags, file: ctx.file, task: curr_task };
     parseParentNode(node as Parent, ctx, curr_task, worklog);

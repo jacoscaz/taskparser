@@ -6,35 +6,65 @@ import { wcswidth } from 'simple-wcswidth';
 
 import { wcslice } from './wcslice.js';
 
+interface ColumnRenderer {
+  (value: string, width: number): string;
+}
+
+interface ColumnDescriptor {
+  tag: string;
+  width: number;
+  calculate_width: boolean;
+  renderValue: ColumnRenderer;
+  renderHeader: ColumnRenderer;
+}
+
 const row_delimiter = '-';
 const column_delimiter = ' | ';
 
-type ColumnRenderer = (value: string, width: number) => string;
+const { stdout } = process;
 
 const renderWithPadding: ColumnRenderer = (value: string, width: number) => {
-  return value.padEnd(width, ' ');
+  return value.padEnd(width - (wcswidth(value) - value.length), ' ');
 };
 
 const renderWithEllipsis: ColumnRenderer = (value: string, width: number) => {
   return wcswidth(value) > width 
     ? wcslice(value, 0, width - 1) + '…'
-    : value.padEnd(width, ' ');
+    : renderWithPadding(value, width);
 };
 
-interface ColumnDescriptor {
-  tag: string;
-  width: number;
-  renderer: ColumnRenderer;
-}
-
-const { stdout } = process;
-
-const printItem = (columns: ColumnDescriptor[], item: Item) => {
-  columns.forEach(({ tag, renderer, width }, t) => {
+const printItemLine = (columns: ColumnDescriptor[], item: Item) => {
+  columns.forEach(({ tag, renderValue, width }, t) => {
     if (t > 0) {
       stdout.write(column_delimiter);
     }
-    stdout.write(renderer(item.tags[tag] ?? '', width));
+    stdout.write(renderValue(item.tags[tag] ?? '', width));
+  });
+};
+
+const buildColumnDescriptors = (show_tags: string[]): ColumnDescriptor[] => {
+  return show_tags.map((tag) => {
+    const descriptor: ColumnDescriptor = {
+      tag,
+      width: wcswidth(tag),
+      calculate_width: true,
+      renderValue: renderWithPadding,
+      renderHeader: renderWithPadding,
+    };
+    switch (tag) {
+      case 'hours':
+        descriptor.width = 1;
+        descriptor.renderValue = renderWithPadding;
+        descriptor.renderHeader = val => val.charAt(0);
+        break;
+      case 'checked':
+        descriptor.width = 1;
+        descriptor.calculate_width = false;
+        descriptor.renderValue = val => val === 'true' ? '✔' : ' ';
+        descriptor.renderHeader = val => val.charAt(0);
+        break;
+    }
+    return descriptor;
   });
 };
 
@@ -45,58 +75,64 @@ const printItem = (columns: ColumnDescriptor[], item: Item) => {
  */
 export const renderTabular: RenderItemsFn = (items, show_tags, opts) => {
 
-  const columns: ColumnDescriptor[] = show_tags.map((tag) => ({
-    tag,
-    width: wcswidth(tag),
-    renderer: renderWithPadding,
-  }));
+  const { terminal_width } = opts;
+
+  const columns = buildColumnDescriptors(show_tags);
 
   // Calculate the width of each column
   columns.forEach((column) => {
-    let { tag, width } = column;
-    items.forEach((item) => {
-      if (tag in item.tags) {
-        width = Math.max(wcswidth(item.tags[tag] ?? ''), width);
-      }
-    });
-    column.width = width;
+    let { tag, width, calculate_width } = column;
+    if (calculate_width) {
+      items.forEach((item) => {
+        if (tag in item.tags) {
+          width = Math.max(wcswidth(item.tags[tag] ?? ''), width);
+        }
+      });
+      column.width = width;
+    }
   });
-
-  // Calculate terminal width
-  const line_width = columns.reduce((acc, c) => acc + c.width, 0) 
-      + (column_delimiter.length * (columns.length - 1));
 
   // If the 'text' tag has been selected and the predicted line width exceeds
   // the width of the terminal we change the column renderer to the ellipsis
   // renderer and recalculate a new maximum width for the 'text' column that 
   // still allows for the entire line to fit within the terminal width
-  const text_column = columns.find(c => c.tag === 'text');
-  if (text_column && line_width >= opts.terminal_width) {
-      text_column.width = Math.max(wcswidth(text_column.tag), text_column.width - (line_width - opts.terminal_width));
-      text_column.renderer = renderWithEllipsis;
-  }
-
+  columns.forEach((column) => {
+    switch (column.tag) {
+      case 'text': {
+        const line_width = columns.reduce((acc, c) => acc + c.width, 0) 
+          + (column_delimiter.length * (columns.length - 1));
+        if (line_width >= terminal_width) {
+          column.width = Math.max(
+            wcswidth(column.tag), 
+            column.width - (line_width - terminal_width),
+          );
+          column.renderValue = renderWithEllipsis;
+        }
+      } break;
+    }
+  });
+  
   // Print headers line
-  columns.forEach(({ tag, renderer, width }, t) => {
+  columns.forEach(({ tag, width, renderHeader }, t) => {
     if (t > 0) {
       stdout.write(column_delimiter);
     }
-    stdout.write(renderer(tag, width));
+    stdout.write(renderHeader(tag, width));
   });
   stdout.write(EOL);
 
   // Print header separator line
-  columns.forEach(({ tag, renderer, width }, t) => {
+  columns.forEach(({ tag, width, renderHeader }, t) => {
     if (t > 0) {
       stdout.write(column_delimiter);
     }
-    stdout.write(renderer(''.padEnd(tag.length, row_delimiter), width));
+    stdout.write(renderHeader(''.padEnd(wcswidth(tag), row_delimiter), width));
   });
   stdout.write(EOL);
   
   // Print items
   items.forEach((item) => {
-    printItem(columns, item);
+    printItemLine(columns, item);
     stdout.write(EOL);
   });
 };

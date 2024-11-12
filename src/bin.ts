@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import type { Item, RenderOpts } from './types.js';
+import type { Item, RenderItemsFn, RenderOpts } from './types.js';
 
 import { fileURLToPath } from 'node:url';
 import { cwd } from 'node:process';
@@ -23,6 +23,10 @@ import {
 
 const pkg_path = resolve(fileURLToPath(import.meta.url), '..', '..', 'package.json');
 const pkg_version = JSON.parse(readFileSync(pkg_path, 'utf8')).version;
+
+// ============================================================================
+//                                    CLI ARGS
+// ============================================================================
 
 const arg_parser = new ArgumentParser({
   description: 'A CLI tool to parse, sort and filter tasks and worklogs out of Markdown documents and print them to standard output, either in tabular of CSV format.',
@@ -55,6 +59,18 @@ arg_parser.add_argument('-l', '--worklogs', {
   help: 'enable worklogs mode',
 });
 
+arg_parser.add_argument('-C', '--checked', {
+  required: false,
+  action: 'store_true',
+  help: 'only show checked tasks',
+});
+
+arg_parser.add_argument('-U', '--unchecked', {
+  required: false,
+  action: 'store_true',
+  help: 'only show unchecked tasks',
+});
+
 arg_parser.add_argument('-o', '--out', {
   required: false,
   default: 'tabular',
@@ -82,39 +98,84 @@ const cli_args = arg_parser.parse_args();
 
 const folder_path = resolve(cwd(), cli_args.path);
 
-const sorter = cli_args.sort ? compileTagSortExpressions(parseTagSortExpressions(cli_args.sort)) : null;
-const filter = cli_args.filter ? compileTagFilterExpressions(parseTagFilterExpressions(cli_args.filter)) : null;
+// ============================================================================
+//                                  FILTERING
+// ============================================================================
+
+// While parsing filtering expressions we need to consider CLI shortcuts, which
+// we can concatenate with the optional explicit filtering expression.
+
+const filter_exprs = [];
+
+if (cli_args.checked) {
+  // Shortcut for showing checked items only
+  filter_exprs.push('checked(=true)');
+}
+
+if (cli_args.unchecked) {
+  // Shortcut for showing unchecked items only
+  filter_exprs.push('checked(=false)');
+}
+
+if (cli_args.filter) {
+  // Explicit filtering expression
+  filter_exprs.push(cli_args.filter);
+}
+
+const filter_expr = filter_exprs.join(',');
+
+const filter_fn = filter_expr ? compileTagFilterExpressions(parseTagFilterExpressions(filter_expr)) : null;
+
+// ============================================================================
+//                                    SORTING
+// ============================================================================
+
+const sort_expr = cli_args.sort;
+
+const sorting_fn = sort_expr ? compileTagSortExpressions(parseTagSortExpressions(sort_expr)) : null;
+
+// ============================================================================
+//                                 TAGS TO SHOW
+// ============================================================================
 
 const show_tags = cli_args.tags 
   ? cli_args.tags.split(',') 
   : cli_args.worklogs 
     ? ['text', 'hours', 'file', 'date'] 
-    : ['text', 'done', 'file', 'date'];
+    : ['text', 'checked', 'file', 'date'];
+
+// ============================================================================
+//                          RENDERING OPTIONS and FN
+// ============================================================================
 
 const render_opts: RenderOpts = { 
   terminal_width: parseInt(cli_args.columns),
 };
 
+const render_fn = ({
+  json: renderJSON,
+  csv: renderCSV,
+  table: renderTabular,
+} satisfies Record<string, RenderItemsFn>)[cli_args.out as string] ?? renderTabular;
+
+// ============================================================================
+//                              RENDERING HELPER
+// ============================================================================
+
 const renderItems = (items: Set<Item>) => {
   let as_arr = Array.from(items);
-  if (filter) {
-    as_arr = as_arr.filter(filter);
+  if (filter_fn) {
+    as_arr = as_arr.filter(filter_fn);
   }
-  if (sorter) {
-    as_arr.sort(sorter);
+  if (sorting_fn) {
+    as_arr.sort(sorting_fn);
   }
-  switch (cli_args.out) {
-    case 'json':
-      renderJSON(as_arr, show_tags, render_opts);
-      break;
-    case 'csv':
-      renderCSV(as_arr, show_tags, render_opts);
-      break;
-    case 'table':
-    default:
-      renderTabular(as_arr, show_tags, render_opts);
-  }
+  render_fn(as_arr, show_tags, render_opts);
 };
+
+// ============================================================================
+//                            3.. 2.. 1.. LET'S GO!
+// ============================================================================
 
 if (cli_args.watch) {
   const { stdout } = process;
@@ -129,4 +190,3 @@ if (cli_args.watch) {
   const { tasks, worklogs } = await parseFolder(folder_path); 
   renderItems(cli_args.worklogs ? worklogs : tasks);
 }
-

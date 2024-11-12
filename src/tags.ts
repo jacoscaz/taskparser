@@ -4,6 +4,8 @@ import type { TagMap, TagSortExpression, TagFilterExpression, Item } from './typ
 import { isMatch } from 'matcher';
 import { load } from 'js-yaml';
 
+import { isNullish } from './utils.js';
+
 const TAG_SEARCH_REGEXP = /\#([a-z0-9]+)(?:\(([^),]+)\))/gi;
 const TAG_CHECK_REGEXP = /([a-z0-9]+)(?:\(([^),]+)\))/i;
 
@@ -87,19 +89,19 @@ export const compileTagFilterExpressions = (exprs: TagFilterExpression[]): ItemF
       if (expr.reference === 'null') {
         switch (expr.operator) {
           case 'is': 
-            if (typeof task_val === 'undefined' || task_val === null) 
+            if (isNullish(task_val)) 
               continue; 
             else
               return false;
           case 'not': 
-            if (typeof task_val === 'undefined' || task_val === null) 
+            if (isNullish(task_val)) 
               return false; 
             else
               continue;
           default:
         }
       }
-      if (typeof task_val === 'undefined' || task_val === null) {
+      if (isNullish(task_val)) {
         return false;
       }
       switch (expr.operator) {

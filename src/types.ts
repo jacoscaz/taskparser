@@ -1,9 +1,13 @@
 
 export type TagMap = Record<string, string>;
 
+export type InternalTag = 'hours' | 'checked' | 'file' | 'line' | 'text';
+
+export type InternalTagMap = Partial<Record<InternalTag, string>>;
+
 export interface Item {
   tags: TagMap;
-  internal_tags: TagMap;
+  internal_tags: InternalTagMap;
   file: string;  
 }
 
@@ -50,5 +54,5 @@ export interface ParseContext {
 export interface ParseFileContext extends ParseContext {
   file: string;
   tags: TagMap;
-  internal_tags: TagMap;
+  internal_tags: InternalTagMap;
 }
