@@ -42,6 +42,11 @@ const printItemLine = (columns: ColumnDescriptor[], item: Item) => {
   });
 };
 
+const shortenWord = (word: string, max_len: number): string => {
+  if (word.length <= max_len) return word;
+  return word.replaceAll(/[aeiou]/g, '').slice(0, max_len);
+};
+
 const buildColumnDescriptors = (show_tags: string[]): ColumnDescriptor[] => {
   return show_tags.map((tag) => {
     const descriptor: ColumnDescriptor = {
@@ -55,7 +60,7 @@ const buildColumnDescriptors = (show_tags: string[]): ColumnDescriptor[] => {
       case 'hours':
         descriptor.width = 1;
         descriptor.renderValue = renderWithPadding;
-        descriptor.renderHeader = val => val.charAt(0);
+        descriptor.renderHeader = val => shortenWord(val, descriptor.width);
         break;
       case 'checked':
         descriptor.width = 1;
