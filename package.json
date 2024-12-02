@@ -1,6 +1,6 @@
 {
   "name": "taskparser",
-  "version": "1.0.0-beta.7",
+  "version": "1.0.0-beta.8",
   "main": "index.js",
   "scripts": {
     "test": "node --test ./dist/test-runner.js",
