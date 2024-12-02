@@ -49,6 +49,8 @@ export interface ParseContext {
   folder: string;
   tasks: TaskSet;
   worklogs: WorklogSet;
+  tags: TagMap;
+  internal_tags: InternalTagMap;
 }
 
 export interface ParseFileContext extends ParseContext {

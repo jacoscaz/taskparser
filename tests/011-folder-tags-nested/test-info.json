@@ -1,0 +1,4 @@
+{
+  "description": "should override tags when in the presence of nested subfolders each having a .taskparser.yaml file",
+  "argv": ["-t", "text,foo,xyz"]
+}

@@ -5,6 +5,8 @@ import type { TagMap, Task, Worklog, ParseContext, ParseFileContext, InternalTag
 import { readdir, readFile, watch, stat } from 'node:fs/promises';
 import { resolve, relative } from 'node:path';
 
+import { load } from 'js-yaml';
+
 import { gfm } from 'micromark-extension-gfm';
 import { frontmatter } from 'micromark-extension-frontmatter';
 
@@ -13,6 +15,7 @@ import { gfmFromMarkdown } from 'mdast-util-gfm';
 import { frontmatterFromMarkdown } from 'mdast-util-frontmatter';
 
 import { extractTagsFromText, extractTagsFromYaml } from './tags.js';
+import { FOLDER_META_FILE } from './utils.js';
 
 const WL_REGEXP = /^WL:(\d{1,2}(?:\.\d{1,2})?)[hH]\s/;
 
@@ -137,17 +140,44 @@ export const parseFile = async (ctx: ParseFileContext) => {
   }
 };
 
+const readFolderMetadata = async (ctx: ParseContext, dir_path: string): Promise<TagMap | undefined> => {
+  try {
+    const target_path = resolve(dir_path, FOLDER_META_FILE);
+    const data: any = load(await readFile(target_path, 'utf8'));
+    if (typeof data.tags === 'object' && data.tags !== null) {
+      return Object.fromEntries(Object.entries(data.tags).map(([k, v]) => [k, String(v)]));
+    }
+  } catch (err) {
+    if ((err as any).code !== 'ENOENT') {
+      throw err;
+    }
+  }
+  return undefined;
+};
+
 const parseFolderHelper = async (ctx: ParseContext, target_path: string) => {
   const target_stats = await stat(target_path);
   if (target_stats.isFile() && target_path.endsWith('.md')) {
     const target_rel_path = relative(ctx.folder, target_path);
     await parseFile({ 
       ...ctx, 
-      file: target_path, 
-      tags: {}, 
-      internal_tags: { file: target_rel_path },
+      file: target_path,
+      internal_tags: { 
+        ...ctx.internal_tags, 
+        file: target_rel_path,
+      },
     });
   } else if (target_stats.isDirectory()) {
+    const folder_tags = await readFolderMetadata(ctx, target_path);
+    if (folder_tags) {
+      ctx = { 
+        ...ctx, 
+        tags: { 
+          ...ctx.tags, 
+          ...folder_tags,
+        },
+      };
+    }
     const child_names = await readdir(target_path);
     for (const child_name of child_names) {
       const child_path = resolve(target_path, child_name);
@@ -161,35 +191,43 @@ export const parseFolder = async (folder_path: string): Promise<ParseContext> =>
     folder: folder_path,
     tasks: new Set(),
     worklogs: new Set(),
+    tags: {},
+    internal_tags: {},
   };
-
   await parseFolderHelper(ctx, folder_path);
   return ctx;
 };
 
-export async function* watchFolder(folder_path: string): AsyncIterable<ParseContext> {
-  const ctx: ParseContext = {
-    folder: folder_path,
-    tasks: new Set(),
-    worklogs: new Set(),
-  };
-  await parseFolderHelper(ctx, folder_path);
-  yield ctx;
-  for await (const evt of watch(ctx.folder)) {
-    if (evt.filename) {
-      const file_path = resolve(ctx.folder, evt.filename);
-      switch (evt.eventType) {
-        case 'change':
-        case 'rename':
-          await parseFile({ 
-            ...ctx, 
-            file: file_path, 
-            internal_tags: { file: evt.filename },
-            tags: {},
-          });
-          yield ctx;
-          break;
-      }
-    }
-  }
-};
+// export async function* watchFolder(folder_path: string): AsyncIterable<ParseContext> {
+//   const ctx: ParseContext = {
+//     folder: folder_path,
+//     tasks: new Set(),
+//     worklogs: new Set(),
+//     tags: {},
+//     internal_tags: {},
+//   };
+//   await parseFolderHelper(ctx, folder_path);
+//   yield ctx;
+//   for await (const evt of watch(ctx.folder)) {
+
+//     if (evt.filename === FOLDER_META_FILE) {
+
+//     }
+
+//     if (evt.filename?.endsWith('.md') || evt.filename === FOLDER_META_FILE) {
+//       const file_path = resolve(ctx.folder, evt.filename);
+//       switch (evt.eventType) {
+//         case 'change':
+//         case 'rename':
+//           await parseFile({ 
+//             ...ctx, 
+//             file: file_path, 
+//             internal_tags: { file: evt.filename },
+//             tags: {},
+//           });
+//           yield ctx;
+//           break;
+//       }
+//     }
+//   }
+// };

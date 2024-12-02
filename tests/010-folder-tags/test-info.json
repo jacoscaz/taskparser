@@ -1,0 +1,4 @@
+{
+  "description": "should read folder tags set in .taskparser.yaml",
+  "argv": ["-t", "text,foo"]
+}

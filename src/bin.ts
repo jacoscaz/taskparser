@@ -9,7 +9,7 @@ import { readFileSync } from 'node:fs';
 
 import { ArgumentParser } from 'argparse';
 
-import { parseFolder, watchFolder } from './parse.js';
+import { parseFolder /*, watchFolder */ } from './parse.js';
 import { renderCSV } from './renderers/csv.js';
 import { renderJSON } from './renderers/json.js';
 import { renderTabular } from './renderers/table.js';
@@ -178,6 +178,8 @@ const renderItems = (items: Set<Item>) => {
 // ============================================================================
 
 if (cli_args.watch) {
+  throw new Error('watch mode is temporarily disabled');
+  /*
   const { stdout } = process;
   if (!stdout.isTTY) {
     throw new Error('cannot use -w/--watch if the terminal is not a TTY');
@@ -185,7 +187,8 @@ if (cli_args.watch) {
   for await (const { tasks, worklogs } of watchFolder(folder_path)) {
     stdout.write('\x1bc');
     renderItems(cli_args.worklogs ? worklogs : tasks);
-  }  
+  } 
+  */ 
 } else {
   const { tasks, worklogs } = await parseFolder(folder_path); 
   renderItems(cli_args.worklogs ? worklogs : tasks);

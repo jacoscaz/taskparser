@@ -175,6 +175,19 @@ a pending task   | foo     | bar    | 20241010-foo.md | 20241010
 a completed task | foo     | bar    | 20241010-foo.md | 20241010
 ```
 
+### Metadata file tags
+
+Tags will also be inherited from any per-folder `.taskparser.yaml` files
+present in the folder hierarchy leading to a markdown file:
+
+Tags **must** be expressed through a simple, root-level `tags` dictionary:
+
+```yaml
+tags:
+  project: foo
+  client: bar
+```
+
 ### Filtering by tag
 
 `taskparser` accepts filter expression via the `-f` argument:

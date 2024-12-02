@@ -16,8 +16,12 @@ const taskparser = async (argv: string[]): Promise<string> => {
   return new Promise((resolve, reject) => {
     const child = spawn(`node ${bin_path}`, argv, { shell: true });
     let stdout = '';
+    let stderr = '';
     child.stdout?.on('data', (chunk) => {
       stdout += chunk.toString();
+    });
+    child.stderr?.on('data', (chunk) => {
+      stderr += chunk;
     });
     child.on('exit', (code) => {
       if (code === null || code === 0) {
@@ -25,6 +29,7 @@ const taskparser = async (argv: string[]): Promise<string> => {
         return;
       }
       console.log(stdout);
+      console.log(stderr);
       reject(new Error(`child process exited with non-zero code`));
     });
   });
