@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 import { cwd } from 'node:process';
 import { resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
+import { writeFile } from 'node:fs/promises';
+import slug from 'slug';
 
 import { ArgumentParser } from 'argparse';
 
@@ -20,6 +22,7 @@ import {
   parseTagFilterExpressions, 
   parseTagSortExpressions,
 } from './tags.js';
+import { renderTodayFile } from './today.js';
 
 const pkg_path = resolve(fileURLToPath(import.meta.url), '..', '..', 'package.json');
 const pkg_version = JSON.parse(readFileSync(pkg_path, 'utf8')).version;
@@ -89,6 +92,18 @@ arg_parser.add_argument('-v', '--version', {
   version: pkg_version,
 });
 
+arg_parser.add_argument('--today', {
+  required: false,
+  action: 'store_true',
+  help: 'generate a new today file at the given path',
+});
+
+arg_parser.add_argument('--title', {
+  required: false,
+  default: 'Today',
+  help: 'title for the new today file',
+});
+
 arg_parser.add_argument('path', {
   default: cwd(),
   help: 'working directory',
@@ -97,6 +112,26 @@ arg_parser.add_argument('path', {
 const cli_args = arg_parser.parse_args();
 
 const folder_path = resolve(cwd(), cli_args.path);
+
+// ============================================================================
+//                                    TODAY
+// ============================================================================
+
+if (cli_args.today) {
+  const { f_name, f_data } = renderTodayFile(new Date(), cli_args.title.trim());
+  const f_path = resolve(cli_args.path, f_name);
+  try {
+    await writeFile(f_path, f_data, { encoding: 'utf-8', flag: 'wx' });
+    console.log('created new today file at %s', f_path);
+  } catch (err) {
+    if ((err as any).code === 'EEXIST') {
+      console.error('Error! File %s already exists!', f_path);
+    } else {
+      throw err;
+    }
+  }
+  process.exit(0);
+}
 
 // ============================================================================
 //                                  FILTERING
