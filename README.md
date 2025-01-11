@@ -12,12 +12,6 @@ See the [post on the rationale behind taskparser on my blog][intro].
 
 [intro]: https://treesandrobots.com/2024/10/taskparser-keep-notes-and-tasks-together.html
 
-## Status
-
-`taskparser` is currently in beta. Feedback from others would be invaluable to
-further shape its evolution. I consider it a _bootstrapped_ task management app
-in that I use `taskparser` to manage `taskparser`'s own development.
-
 ## Example
 
 Given directory `/foo/bar` with a `20241010-baz.md` file having the following
@@ -53,9 +47,12 @@ npm i -g taskparser
 
 ```
 $ taskparser -h
-usage: taskparser [-h] [-t TAGS] [-f FILTER] [-s SORT] [-w] [-l] [-C] [-U] [-o {table,csv,json}] [-c COLUMNS] [-v] path
+usage: taskparser [-h] [-t TAGS] [-f FILTER] [-s SORT] [-w] [-l] [-C] [-U] [-o {table,csv,json}] [-c COLUMNS]
+              [-v] [--today] [--title TITLE]
+              path
 
-A CLI tool to parse, sort and filter tasks and worklogs out of Markdown documents and print them to standard output, either in tabular of CSV format.
+A CLI tool to parse, sort and filter tasks and worklogs out of Markdown documents and print them to
+standard output, either in tabular of CSV format.
 
 positional arguments:
   path                  working directory
@@ -75,6 +72,8 @@ optional arguments:
   -c COLUMNS, --columns COLUMNS
                         override detected terminal width (in character columns)
   -v, --version         show program's version number and exit
+  --today               generate a new today file at the given path
+  --title TITLE         title for the new today file
 ```
 
 ## Tags
@@ -285,7 +284,7 @@ it encounters, `taskparser` automatically generates the following tags:
 The `-l` or `--worklogs` flag may be used to enable worklog mode:
 
 ```
-taskparser -l -t text,hours,file,date"
+taskparser -l -t text,hours,file,date
 ```
 
 When rendering to a Markdown table (i.e. the default output format), the
@@ -293,5 +292,20 @@ When rendering to a Markdown table (i.e. the default output format), the
 
 ## License
 
-Released under the LGPL v3.0 (`LGPL-3.0-only`) license.
-See [LICENSE.md](./LICENSE.md).
+Released under the LGPL v3.0 (`LGPL-3.0-only`) license. See [LICENSE.md][l1].
+
+## Dependencies
+
+This package is published to NPM in bundle form, with no runtime dependencies.
+
+All bundled dependencies are listed in the [DEPENDENCIES.md][l2] file, which
+includes version numbers and licenses. This file is generated using the
+[`license-report` package][l3] as follows:
+
+```sh
+license-report --config license-report-config.json --output=markdown > DEPENDENCIES.md
+```
+
+[l1]: ./LICENSE.md
+[l2]: ./DEPENDENCIES.md
+[l3]: https://www.npmjs.com/package/license-report

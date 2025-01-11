@@ -7,7 +7,6 @@ import { cwd } from 'node:process';
 import { resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
 import { writeFile } from 'node:fs/promises';
-import slug from 'slug';
 
 import { ArgumentParser } from 'argparse';
 

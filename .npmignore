@@ -1,6 +1,9 @@
 src/**/*
-dist/test-runner.js
+dist/*
+!dist/bin.js
 .gitignore
 .github
 tsconfig.json
 tests/**/*
+license-report-config.json
+esbuild-cjs-shim.js

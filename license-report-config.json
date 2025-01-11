@@ -1,0 +1,18 @@
+{
+  "fields": [
+    "name",
+    "licenseType",
+    "link",
+    "installedVersion",
+    "author"
+  ],
+  "exclude": [
+    "esbuild",
+    "typescript"
+  ],
+  "excludeRegex": "^@types\/",
+  "installedVersion": {
+    "value": "n/a",
+    "label": "bundled version"
+  }
+}

@@ -31,12 +31,18 @@ const isListNodeWorklog = (node: ListItem): boolean => {
   return WL_REGEXP.test(worklog.value);
 };
 
+const trimTextNodeText = (text: string) => {
+  return text.trim()
+    .replaceAll(/\r?\n/g, ' ')
+    .replace(/\s+/, ' ');
+};
+
 const parseTextNode = (node: Text, ctx: ParseFileContext, curr_task: Task | null, curr_wlog: Worklog | null) => {
   if (curr_wlog) {
     let match;
     if (!('text' in curr_wlog.internal_tags) && (match = node.value.match(WL_REGEXP))) {
       const [full, hours] = match;
-      const text = node.value.slice(full.length).trim().replaceAll(/\r?\n/g, '');
+      const text = trimTextNodeText(node.value.slice(full.length))
       curr_wlog.internal_tags.hours = hours;
       curr_wlog.internal_tags.text = text;
       extractTagsFromText(text, curr_wlog.tags);
@@ -46,7 +52,7 @@ const parseTextNode = (node: Text, ctx: ParseFileContext, curr_task: Task | null
   }
   if (curr_task) {
     if (!('text' in curr_task.internal_tags)) {
-      const text = node.value.trim().replaceAll(/\r?\n/g, '');
+      const text = trimTextNodeText(node.value);
       curr_task.internal_tags.text = text;
       extractTagsFromText(text, curr_task.tags);
     } else {
