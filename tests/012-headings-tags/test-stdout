@@ -1,0 +1,7 @@
+text                   | level
+----                   | -----
+a pending task         | 1    
+a completed task       | 1.1  
+another completed task | 1.1.1
+another pending task   | 1.2  
+another pending task   | 2    

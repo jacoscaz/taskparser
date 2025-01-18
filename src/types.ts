@@ -53,8 +53,15 @@ export interface ParseContext {
   internal_tags: InternalTagMap;
 }
 
+export interface ParsedHeading {
+  depth: number;
+  tags: TagMap;
+  parent?: ParsedHeading;
+}
+
 export interface ParseFileContext extends ParseContext {
   file: string;
   tags: TagMap;
+  curr_heading?: ParsedHeading;
   internal_tags: InternalTagMap;
 }

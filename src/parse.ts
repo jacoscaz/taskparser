@@ -1,6 +1,6 @@
 
-import type { Parent, Node, Yaml, ListItem, Text } from 'mdast';
-import type { TagMap, Task, Worklog, ParseContext, ParseFileContext, InternalTagMap } from './types.js';
+import type { Parent, Node, Yaml, ListItem, Text, Heading } from 'mdast';
+import type { TagMap, Task, Worklog, ParseContext, ParseFileContext, InternalTagMap, ParsedHeading } from './types.js';
 
 import { readdir, readFile, watch, stat } from 'node:fs/promises';
 import { resolve, relative } from 'node:path';
@@ -67,6 +67,7 @@ const parseListItemNode = (node: ListItem, ctx: ParseFileContext, curr_task: Tas
     const tags: TagMap = { ...ctx.tags };
     const internal_tags: InternalTagMap = {
       ...ctx.internal_tags,
+      ...ctx.curr_heading?.tags,
       line: String(node.position!.start.line),
       checked: String(node.checked),
     };
@@ -78,6 +79,7 @@ const parseListItemNode = (node: ListItem, ctx: ParseFileContext, curr_task: Tas
     const tags: TagMap = { ...ctx.tags };
     const internal_tags: TagMap = {
       ...ctx.internal_tags,
+      ...ctx.curr_heading?.tags,
       line: String(node.position!.start.line),
     };
     const worklog: Worklog = { tags, internal_tags, file: ctx.file, task: curr_task };
@@ -95,6 +97,17 @@ const parseParentNode = (node: Parent, ctx: ParseFileContext, curr_task: Task | 
   });
 };
 
+const parseHeadingNode = (node: Heading, ctx: ParseFileContext, curr_task: Task | null, curr_wlog: Worklog | null) => {
+  let parent = ctx.curr_heading;
+  while (parent && parent.depth > node.depth) {
+    parent = parent.parent;
+  }
+  const tags = parent ? { ...parent.tags } : {};
+  const text = trimTextNodeText((node.children[0] as Text).value);
+  extractTagsFromText(text, tags);
+  ctx.curr_heading = { depth: node.depth, tags, parent };
+};
+
 const parseNode = (node: Node, ctx: ParseFileContext, curr_task: Task | null, curr_wlog: Worklog | null) => {
   switch (node.type) {
     case 'yaml': 
@@ -105,6 +118,9 @@ const parseNode = (node: Node, ctx: ParseFileContext, curr_task: Task | null, cu
       break;
     case 'text':
       parseTextNode(node as Text, ctx, curr_task, curr_wlog);
+      break;
+    case 'heading':
+      parseHeadingNode(node as Heading, ctx, curr_task, curr_wlog);
       break;
     default:
       if ('children' in node) {
