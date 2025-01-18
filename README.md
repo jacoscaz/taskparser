@@ -149,7 +149,7 @@ a completed task |         |        | 20241010-foo.md | 20241010
 
 ### Frontmatter tags
 
-Tags will also be inherited from any YAML front-matter:
+If present, tags will be inherited from any YAML front-matter:
 
 ```markdown
 ---
@@ -176,8 +176,8 @@ a completed task | foo     | bar    | 20241010-foo.md | 20241010
 
 ### Metadata file tags
 
-Tags will also be inherited from any per-folder `.taskparser.yaml` files
-present in the folder hierarchy leading to a markdown file:
+If present, tags will be inherited from any per-folder `.taskparser.yaml` files
+throughout the folder hierarchy leading to a markdown file:
 
 Tags **must** be expressed through a simple, root-level `tags` dictionary:
 
@@ -185,6 +185,36 @@ Tags **must** be expressed through a simple, root-level `tags` dictionary:
 tags:
   project: foo
   client: bar
+```
+
+## Heading tags
+
+If present, tags will be inherited from headings. Each sub-heading may override
+tags from parent headings.
+
+```markdown
+# #client(foo)
+
+## #project(bar)
+
+- [ ] a pending task
+
+## #project(baz)
+
+- [X] a completed task
+```
+
+`taskparser` will produce:
+
+```
+$ taskparser -t text,project,client,file,date /foo/bar
+```
+
+```
+text             | project | client | file            | date
+---              | ---     | ---    | ---             | ---
+a pending task   | bar     | foo    | 20241010-foo.md | 20241010
+a completed task | baz     | foo    | 20241010-foo.md | 20241010
 ```
 
 ### Filtering by tag
