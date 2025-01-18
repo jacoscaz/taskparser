@@ -10,7 +10,7 @@ import { writeFile } from 'node:fs/promises';
 
 import { ArgumentParser } from 'argparse';
 
-import { parseFolder /*, watchFolder */ } from './parse.js';
+import { parseFolder } from './parse.js';
 import { renderCSV } from './renderers/csv.js';
 import { renderJSON } from './renderers/json.js';
 import { renderTabular } from './renderers/table.js';
@@ -47,12 +47,6 @@ arg_parser.add_argument('-f', '--filter', {
 arg_parser.add_argument('-s', '--sort', {
   required: false,
   help: 'sorting expression such as: foo(asc)'
-});
-
-arg_parser.add_argument('-w', '--watch', {
-  required: false,
-  action: 'store_true',
-  help: 'enable watch mode'
 });
 
 arg_parser.add_argument('-l', '--worklogs', {
@@ -211,19 +205,5 @@ const renderItems = (items: Set<Item>) => {
 //                            3.. 2.. 1.. LET'S GO!
 // ============================================================================
 
-if (cli_args.watch) {
-  throw new Error('watch mode is temporarily disabled');
-  /*
-  const { stdout } = process;
-  if (!stdout.isTTY) {
-    throw new Error('cannot use -w/--watch if the terminal is not a TTY');
-  }
-  for await (const { tasks, worklogs } of watchFolder(folder_path)) {
-    stdout.write('\x1bc');
-    renderItems(cli_args.worklogs ? worklogs : tasks);
-  } 
-  */ 
-} else {
-  const { tasks, worklogs } = await parseFolder(folder_path); 
-  renderItems(cli_args.worklogs ? worklogs : tasks);
-}
+const { tasks, worklogs } = await parseFolder(folder_path); 
+renderItems(cli_args.worklogs ? worklogs : tasks);

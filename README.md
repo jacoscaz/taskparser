@@ -47,7 +47,7 @@ npm i -g taskparser
 
 ```
 $ taskparser -h
-usage: taskparser [-h] [-t TAGS] [-f FILTER] [-s SORT] [-w] [-l] [-C] [-U] [-o {table,csv,json}] [-c COLUMNS]
+usage: taskparser [-h] [-t TAGS] [-f FILTER] [-s SORT] [-l] [-C] [-U] [-o {table,csv,json}] [-c COLUMNS]
               [-v] [--today] [--title TITLE]
               path
 
@@ -63,7 +63,6 @@ optional arguments:
   -f FILTER, --filter FILTER
                         filtering expression such as: foo(=bar)
   -s SORT, --sort SORT  sorting expression such as: foo(asc)
-  -w, --watch           enable watch mode
   -l, --worklogs        enable worklogs mode
   -C, --checked         only show checked tasks
   -U, --unchecked       only show unchecked tasks

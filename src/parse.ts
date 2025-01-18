@@ -2,7 +2,7 @@
 import type { Parent, Node, Yaml, ListItem, Text, Heading } from 'mdast';
 import type { TagMap, Task, Worklog, ParseContext, ParseFileContext, InternalTagMap, ParsedHeading } from './types.js';
 
-import { readdir, readFile, watch, stat } from 'node:fs/promises';
+import { readdir, readFile, stat } from 'node:fs/promises';
 import { resolve, relative } from 'node:path';
 
 import { load } from 'js-yaml';
@@ -219,37 +219,3 @@ export const parseFolder = async (folder_path: string): Promise<ParseContext> =>
   await parseFolderHelper(ctx, folder_path);
   return ctx;
 };
-
-// export async function* watchFolder(folder_path: string): AsyncIterable<ParseContext> {
-//   const ctx: ParseContext = {
-//     folder: folder_path,
-//     tasks: new Set(),
-//     worklogs: new Set(),
-//     tags: {},
-//     internal_tags: {},
-//   };
-//   await parseFolderHelper(ctx, folder_path);
-//   yield ctx;
-//   for await (const evt of watch(ctx.folder)) {
-
-//     if (evt.filename === FOLDER_META_FILE) {
-
-//     }
-
-//     if (evt.filename?.endsWith('.md') || evt.filename === FOLDER_META_FILE) {
-//       const file_path = resolve(ctx.folder, evt.filename);
-//       switch (evt.eventType) {
-//         case 'change':
-//         case 'rename':
-//           await parseFile({ 
-//             ...ctx, 
-//             file: file_path, 
-//             internal_tags: { file: evt.filename },
-//             tags: {},
-//           });
-//           yield ctx;
-//           break;
-//       }
-//     }
-//   }
-// };
