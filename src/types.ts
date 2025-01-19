@@ -6,16 +6,18 @@ export type InternalTag = 'hours' | 'checked' | 'file' | 'line' | 'text';
 export type InternalTagMap = Partial<Record<InternalTag, string>>;
 
 export interface Item {
+  type: string;
   tags: TagMap;
-  internal_tags: InternalTagMap;
   file: string;  
 }
 
 export interface Task extends Item {
+  type: 'task';
   worklogs: Worklog[];
 }
 
 export interface Worklog extends Item {
+  type: 'wlog';
   task: Task | null;
 }
 
@@ -62,6 +64,6 @@ export interface ParsedHeading {
 export interface ParseFileContext extends ParseContext {
   file: string;
   tags: TagMap;
-  curr_heading?: ParsedHeading;
+  heading?: ParsedHeading;
   internal_tags: InternalTagMap;
 }

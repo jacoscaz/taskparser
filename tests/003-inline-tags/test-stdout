@@ -1,4 +1,4 @@
-text                     | date     | foo
-----                     | ----     | ---
-a pending task #foo(bar) | 20240101 | bar
-a completed task         | 20240101 |    
+text             | date     | foo
+----             | ----     | ---
+a pending task   | 20240101 | bar
+a completed task | 20240101 |    

@@ -44,7 +44,7 @@ for (const item of await readdir(tests_dir_path)) {
   const this_test_path = resolve(tests_dir_path, item);
   const test_info = JSON.parse(await readFile(resolve(this_test_path, 'test-info.json'), 'utf8'));
   const stdout = await readFile(resolve(this_test_path, 'test-stdout'), 'utf8');
-  tests.push({ ...test_info, stdout, path: this_test_path });  
+  tests.push({ ...test_info, description: `${item}: ${test_info.description}`, stdout, path: this_test_path });  
 }
 
 describe('taskparser', () => {

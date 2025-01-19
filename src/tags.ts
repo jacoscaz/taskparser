@@ -4,15 +4,21 @@ import type { TagMap, TagSortExpression, TagFilterExpression, Item } from './typ
 import { isMatch } from 'matcher';
 import { load } from 'js-yaml';
 
-import { isNullish } from './utils.js';
+import { isNullish, joinMergeWhitespace } from './utils.js';
 
-const TAG_SEARCH_REGEXP = /\#([a-z0-9]+)(?:\(([^),]+)\))/gi;
-const TAG_CHECK_REGEXP = /([a-z0-9]+)(?:\(([^),]+)\))/i;
+export const TAG_SEARCH_REGEXP = /\#([a-z0-9]+)(?:\(([^),]+)\))/gi;
+export const TAG_CHECK_REGEXP = /([a-z0-9]+)(?:\(([^),]+)\))/i;
 
 export const extractTagsFromText = (raw: string, tags: TagMap) => {
-  for (const [, key, value] of raw.matchAll(TAG_SEARCH_REGEXP)) {
-    tags[key] = value ?? 'true';
+  let offset = 0;
+  let stripped = '';
+  for (const match of raw.matchAll(TAG_SEARCH_REGEXP)) {
+    tags[match[1]] = match[2] ?? 'true';
+    stripped = joinMergeWhitespace(stripped, raw.slice(offset, match.index));
+    offset += match.index + match[0].length;
   }
+  stripped = joinMergeWhitespace(stripped, raw.slice(offset));
+  return stripped;
 };
 
 export const extractTagsFromYaml = (raw: string, tags: TagMap) => {
@@ -61,7 +67,7 @@ export const compileTagSortExpressions = (exprs: TagSortExpression[]): ItemCompa
   };
 };
 
-const FILTER_REGEXP = /^([!*$^<>]?=|[<>]|is|not)\s*([a-z0-9*]+)$/i
+const FILTER_REGEXP = /^([!*$^<>]?=|[<>]|is|not)\s*([a-z0-9*_\-]+)$/i
 
 export const parseTagFilterExpressions = (raw: string): TagFilterExpression[] => {
   return raw.split(',').map((raw_substr) => {

@@ -1,0 +1,4 @@
+{
+  "description": "should ignore folder when specified via metadata file",
+  "argv": ["-t", "text"]
+}

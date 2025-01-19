@@ -1,4 +1,4 @@
-text                       | foo
-----                       | ---
-a pending task             | bar
-a completed task #foo(baz) | baz
+text             | foo
+----             | ---
+a pending task   | bar
+a completed task | baz

@@ -1,6 +1,6 @@
 
 import type { Parent, Node, Yaml, ListItem, Text, Heading } from 'mdast';
-import type { TagMap, Task, Worklog, ParseContext, ParseFileContext, InternalTagMap, ParsedHeading } from './types.js';
+import type { TagMap, Task, Worklog, ParseContext, ParseFileContext } from './types.js';
 
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { resolve, relative } from 'node:path';
@@ -15,116 +15,95 @@ import { gfmFromMarkdown } from 'mdast-util-gfm';
 import { frontmatterFromMarkdown } from 'mdast-util-frontmatter';
 
 import { extractTagsFromText, extractTagsFromYaml } from './tags.js';
-import { FOLDER_META_FILE } from './utils.js';
+import { FOLDER_META_FILE, joinMergeWhitespace, normalizeWhitespace, SPACE } from './utils.js';
 
 const WL_REGEXP = /^WL:(\d{1,2}(?:\.\d{1,2})?)[hH]\s/;
 
-const isListNodeWorklog = (node: ListItem): boolean => {
-  const paragraph = node.children[0];
-  if (!paragraph || paragraph.type !== 'paragraph') {
-    return false;
+const collectTextDepthFirst = (root: Node | undefined, acc: string = ''): string => {
+  if (!root) {
+    return acc;
   }
-  const worklog = paragraph.children[0];
-  if (!worklog || worklog.type !== 'text') {
-    return false;
+  if (root.type === 'text') {
+    return joinMergeWhitespace(acc, normalizeWhitespace((root as Text).value));
+  } 
+  if ('children' in root) {
+    return joinMergeWhitespace(acc, (root as Parent).children.map(child => collectTextDepthFirst(child, acc)).join(SPACE));
   }
-  return WL_REGEXP.test(worklog.value);
+  return acc;
 };
 
-const trimTextNodeText = (text: string) => {
-  return text.trim()
-    .replaceAll(/\r?\n/g, ' ')
-    .replace(/\s+/, ' ');
-};
-
-const parseTextNode = (node: Text, ctx: ParseFileContext, curr_task: Task | null, curr_wlog: Worklog | null) => {
-  if (curr_wlog) {
-    let match;
-    if (!('text' in curr_wlog.internal_tags) && (match = node.value.match(WL_REGEXP))) {
-      const [full, hours] = match;
-      const text = trimTextNodeText(node.value.slice(full.length))
-      curr_wlog.internal_tags.hours = hours;
-      curr_wlog.internal_tags.text = text;
-      extractTagsFromText(text, curr_wlog.tags);
-    } else {
-      extractTagsFromText(node.value, curr_wlog.tags);
+const parseListItemNode = (node: ListItem, ctx: ParseFileContext, item: Task | Worklog | null) => {
+  if (!item) {
+    const text = collectTextDepthFirst(node);
+    if (typeof node.checked === 'boolean') {
+      const tags: TagMap = { 
+        ...ctx.tags,
+        ...ctx.heading?.tags,
+        line: String(node.position!.start.line),
+        checked: String(node.checked),
+      };
+      tags.text = extractTagsFromText(text, tags);
+      Object.assign(tags, ctx.internal_tags);
+      ctx.tasks.add({ type: 'task', tags, file: ctx.file, worklogs: [] });
+      return;
+    } 
+    const wl_match = text.match(WL_REGEXP);
+    if (wl_match) {
+      const [full, hours] = wl_match;
+      const tags: TagMap = { 
+        ...ctx.tags,
+        ...ctx.heading?.tags,
+        hours,
+        line: String(node.position!.start.line),
+      };
+      tags.text = extractTagsFromText(text.slice(full.length), tags);
+      Object.assign(tags, ctx.internal_tags);
+      ctx.worklogs.add({ type: 'wlog', tags, file: ctx.file, task: item });
+      return;
     }
   }
-  if (curr_task) {
-    if (!('text' in curr_task.internal_tags)) {
-      const text = trimTextNodeText(node.value);
-      curr_task.internal_tags.text = text;
-      extractTagsFromText(text, curr_task.tags);
-    } else {
-      extractTagsFromText(node.value, curr_task.tags);
-    }
-  }
+  parseParentNode(node, ctx, item);
 };
 
-
-const parseListItemNode = (node: ListItem, ctx: ParseFileContext, curr_task: Task | null, curr_wlog: Worklog | null) => {
-  if (!curr_task && typeof node.checked === 'boolean') {
-    const tags: TagMap = { ...ctx.tags };
-    const internal_tags: InternalTagMap = {
-      ...ctx.internal_tags,
-      ...ctx.curr_heading?.tags,
-      line: String(node.position!.start.line),
-      checked: String(node.checked),
-    };
-    const task: Task = { tags, internal_tags, file: ctx.file, worklogs: [] };
-    parseParentNode(node as Parent, ctx, task, curr_wlog);
-    Object.assign(tags, internal_tags);
-    ctx.tasks.add(task);
-  } else if (!curr_wlog && isListNodeWorklog(node)) {
-    const tags: TagMap = { ...ctx.tags };
-    const internal_tags: TagMap = {
-      ...ctx.internal_tags,
-      ...ctx.curr_heading?.tags,
-      line: String(node.position!.start.line),
-    };
-    const worklog: Worklog = { tags, internal_tags, file: ctx.file, task: curr_task };
-    parseParentNode(node as Parent, ctx, curr_task, worklog);
-    Object.assign(tags, internal_tags);
-    ctx.worklogs.add(worklog);
-  } else {
-    parseParentNode(node, ctx, curr_task, curr_wlog);
-  }
-};
-
-const parseParentNode = (node: Parent, ctx: ParseFileContext, curr_task: Task | null, curr_wlog: Worklog | null) => {
+const parseParentNode = (node: Parent, ctx: ParseFileContext, item: Task | Worklog | null) => {
   node.children.forEach((node) => {
-    parseNode(node, ctx, curr_task, curr_wlog); 
+    parseNode(node, ctx, item); 
   });
 };
 
-const parseHeadingNode = (node: Heading, ctx: ParseFileContext, curr_task: Task | null, curr_wlog: Worklog | null) => {
-  let parent = ctx.curr_heading;
+const parseHeadingNode = (node: Heading, ctx: ParseFileContext, item: Task | Worklog | null) => {
+  let parent = ctx.heading;
   while (parent && parent.depth > node.depth) {
     parent = parent.parent;
   }
   const tags = parent ? { ...parent.tags } : {};
-  const text = trimTextNodeText((node.children[0] as Text).value);
+  const text = collectTextDepthFirst(node);
   extractTagsFromText(text, tags);
-  ctx.curr_heading = { depth: node.depth, tags, parent };
+  ctx.heading = { depth: node.depth, tags, parent };
 };
 
-const parseNode = (node: Node, ctx: ParseFileContext, curr_task: Task | null, curr_wlog: Worklog | null) => {
+const parseYamlNode = (node: Yaml, ctx: ParseFileContext, item: Task | Worklog | null) => {
+  try {
+    extractTagsFromYaml((node as Yaml).value, ctx.tags);
+  } catch (err) {
+    throw new Error(`could not parse YAML front-matter in file ${ctx.file}: ${(err as Error).message}`);
+  }
+};
+
+const parseNode = (node: Node, ctx: ParseFileContext, item: Task | Worklog | null) => {
   switch (node.type) {
     case 'yaml': 
-      extractTagsFromYaml((node as Yaml).value, ctx.tags);
+      parseYamlNode(node as Yaml, ctx, item);
       break;
     case 'listItem': 
-      parseListItemNode(node as ListItem, ctx, curr_task, curr_wlog); 
-      break;
-    case 'text':
-      parseTextNode(node as Text, ctx, curr_task, curr_wlog);
+      parseListItemNode(node as ListItem, ctx, item); 
       break;
     case 'heading':
-      parseHeadingNode(node as Heading, ctx, curr_task, curr_wlog);
+      parseHeadingNode(node as Heading, ctx, item);
       break;
     default:
       if ('children' in node) {
-        parseParentNode(node as Parent, ctx, curr_task, curr_wlog);
+        parseParentNode(node as Parent, ctx, item);
       }
   }
 };
@@ -154,7 +133,7 @@ export const parseFile = async (ctx: ParseFileContext) => {
     if (date_match) {
       ctx.tags['date'] = date_match[1].replaceAll('-', '');
     }
-    parseNode(root_node, ctx, null, null);
+    parseNode(root_node, ctx, null);
   } catch (err) {
     if ((err as any).code !== 'ENOENT') {
       throw err;
@@ -162,19 +141,23 @@ export const parseFile = async (ctx: ParseFileContext) => {
   }
 };
 
-const readFolderMetadata = async (ctx: ParseContext, dir_path: string): Promise<TagMap | undefined> => {
+const readFolderMetadata = async (ctx: ParseContext, dir_path: string): Promise<{ tags: TagMap, ignore: boolean }> => {
+  const target_path = resolve(dir_path, FOLDER_META_FILE);
+  const tags: TagMap = {};
   try {
-    const target_path = resolve(dir_path, FOLDER_META_FILE);
-    const data: any = load(await readFile(target_path, 'utf8'));
+    const data: any = load(await readFile(target_path, 'utf8')); 
     if (typeof data.tags === 'object' && data.tags !== null) {
-      return Object.fromEntries(Object.entries(data.tags).map(([k, v]) => [k, String(v)]));
+      Object.entries(data.tags).forEach(([k, v]) => {
+        tags[k] = String(v);
+      });
     }
+    return { tags, ignore: !!data.ignore };
   } catch (err) {
     if ((err as any).code !== 'ENOENT') {
-      throw err;
+      throw new Error(`could not parse folder metadata file ${target_path}: ${err as Error}.message`);
     }
+    return { tags, ignore: false };
   }
-  return undefined;
 };
 
 const parseFolderHelper = async (ctx: ParseContext, target_path: string) => {
@@ -190,20 +173,20 @@ const parseFolderHelper = async (ctx: ParseContext, target_path: string) => {
       },
     });
   } else if (target_stats.isDirectory()) {
-    const folder_tags = await readFolderMetadata(ctx, target_path);
-    if (folder_tags) {
+    const { tags, ignore } = await readFolderMetadata(ctx, target_path);
+    if (!ignore) {
       ctx = { 
         ...ctx, 
         tags: { 
           ...ctx.tags, 
-          ...folder_tags,
+          ...tags,
         },
       };
-    }
-    const child_names = await readdir(target_path);
-    for (const child_name of child_names) {
-      const child_path = resolve(target_path, child_name);
-      await parseFolderHelper(ctx, child_path);
+      const child_names = await readdir(target_path);
+      for (const child_name of child_names) {
+        const child_path = resolve(target_path, child_name);
+        await parseFolderHelper(ctx, child_path);
+      }
     }
   }
 };

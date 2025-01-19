@@ -1,4 +1,4 @@
-text                          | file                                             | line
-----                          | ----                                             | ----
-a pending task #file(baz)     | 20240101-overriding-internal-tags-not-allowed.md | 5   
-a completed task #done(false) | 20240101-overriding-internal-tags-not-allowed.md | 6   
+text             | file                                             | line
+----             | ----                                             | ----
+a pending task   | 20240101-overriding-internal-tags-not-allowed.md | 5   
+a completed task | 20240101-overriding-internal-tags-not-allowed.md | 6   
