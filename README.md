@@ -186,7 +186,7 @@ tags:
   client: bar
 ```
 
-## Heading tags
+### Heading tags
 
 If present, tags will be inherited from headings. Each sub-heading may override
 tags from parent headings.
