@@ -1,0 +1,4 @@
+{
+  "description": "should filter tasks using the > (greater than) operator",
+  "argv": ["-t", "text,checked,foo", "-f", "'foo(<=aab)'"]
+}

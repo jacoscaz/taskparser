@@ -1,0 +1,4 @@
+text             | c | foo
+----             | - | ---
+a pending task   |   | aaa
+a completed task | ✔ | aab
