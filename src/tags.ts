@@ -122,21 +122,22 @@ export const compileTagFilterExpressions = (exprs: TagFilterExpression[]): ItemF
           }
           break;
         case '<': 
-          if (expr_val >= task_val) {
+          if (task_val >= expr_val) {
             return false;
           }
           break;
         case '>': 
-          if (expr_val <= task_val) {
+          if (task_val <= expr_val) {
+            return false;
+          }
+          break;
+        case '<=': 
+          if (task_val > expr_val) {
             return false;
           }
           break;
         case '>=': 
-          if (expr_val < task_val) {
-            return false;
-          }
-        case '<=': 
-          if (expr_val > task_val) {
+          if (task_val < expr_val) {
             return false;
           };
           break;
