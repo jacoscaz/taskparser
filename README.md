@@ -69,12 +69,9 @@ npm i -g taskparser
 
 ```
 $ taskparser -h
-usage: taskparser [-h] [-t TAGS] [-f FILTER] [-s SORT] [-l] [-C] [-U] [-o {table,csv,json}] [-c COLUMNS]
-              [-v] [--today] [--title TITLE]
-              path
+usage: taskparser [-h] [-t TAGS] [-f FILTER] [-s SORT] [-l] [-C] [-U] [-o {table,csv,json}] [-c COLUMNS] [-v] path
 
-A CLI tool to parse, sort and filter tasks and worklogs out of Markdown documents and print them to
-standard output, either in tabular of CSV format.
+A CLI tool to parse, sort and filter tasks and worklogs out of Markdown documents and print them to standard output, either in tabular of CSV format.
 
 positional arguments:
   path                  working directory
@@ -93,8 +90,6 @@ optional arguments:
   -c COLUMNS, --columns COLUMNS
                         override detected terminal width (in character columns)
   -v, --version         show program's version number and exit
-  --today               generate a new today file at the given path
-  --title TITLE         title for the new today file
 ```
 
 ## Tags
