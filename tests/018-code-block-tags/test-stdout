@@ -1,0 +1,4 @@
+text             | date     | client | project
+----             | ----     | ------ | -------
+a pending task   | 20240101 | foo    | bar    
+a completed task | 20240101 | foo    | baz    

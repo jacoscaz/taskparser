@@ -1,5 +1,5 @@
 
-import type { Parent, Node, Yaml, ListItem, Text, Heading } from 'mdast';
+import type { Parent, Node, Yaml, ListItem, Text, Heading, Code } from 'mdast';
 import type { TagMap, Task, Worklog, ParseContext, ParseFileContext } from './types.js';
 
 import { readdir, readFile, stat } from 'node:fs/promises';
@@ -90,6 +90,16 @@ const parseYamlNode = (node: Yaml, ctx: ParseFileContext, item: Task | Worklog |
   }
 };
 
+const parseCodeNode = (node: Code, ctx: ParseFileContext, item: Task | Worklog | null) => {
+  if (node.lang === 'taskparser' && ctx.heading) {
+    try {
+      extractTagsFromYaml(node.value, ctx.heading.tags);
+    } catch (err) {
+      throw new Error(`could not parse YAML code block in file ${ctx.file}: ${(err as Error).message}`);
+    }
+  }
+};
+
 const parseNode = (node: Node, ctx: ParseFileContext, item: Task | Worklog | null) => {
   switch (node.type) {
     case 'yaml': 
@@ -100,6 +110,9 @@ const parseNode = (node: Node, ctx: ParseFileContext, item: Task | Worklog | nul
       break;
     case 'heading':
       parseHeadingNode(node as Heading, ctx, item);
+      break;
+    case 'code':
+      parseCodeNode(node as Code, ctx, item);
       break;
     default:
       if ('children' in node) {

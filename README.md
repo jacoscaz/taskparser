@@ -21,6 +21,7 @@ as YAML frontmatter.
     - [Frontmatter tags](#frontmatter-tags)
     - [Metadata file tags](#metadata-file-tags)
     - [Heading tags](#heading-tags)
+    - [Tags in code blocks](#tags-in-code-blocks)
     - [Filtering by tag](#filtering-by-tag)
     - [Filtering by checked state](#filtering-by-checked-state)
     - [Sorting by tag](#sorting-by-tag)
@@ -231,6 +232,43 @@ text             | project | client | file            | date
 ---              | ---     | ---    | ---             | ---
 a pending task   | bar     | foo    | 20241010-foo.md | 20241010
 a completed task | baz     | foo    | 20241010-foo.md | 20241010
+```
+
+### Tags in code blocks
+
+YAML fenced code blocks can also be used to set tags at the heading
+level when using the `taskparser` language identifier. Given:
+
+~~~markdown
+# primary
+
+```taskparser
+client: foo
+project: bar
+```
+
+- [ ] a pending task
+
+## secondary
+
+```taskparser
+project: baz
+```
+
+- [X] a completed task
+~~~
+
+`taskparser` will produce:
+
+```
+$ taskparser -t text,client,project /foo/bar
+```
+
+```
+text             | client | project
+----             | ------ | -------
+a pending task   | foo    | bar    
+a completed task | foo    | baz  
 ```
 
 ### Filtering by tag
