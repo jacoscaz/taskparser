@@ -6,14 +6,13 @@ import { fileURLToPath } from 'node:url';
 import { cwd } from 'node:process';
 import { resolve } from 'node:path';
 import { readFileSync } from 'node:fs';
-import { writeFile } from 'node:fs/promises';
 
 import { ArgumentParser } from 'argparse';
 
 import { parseFolder } from './parse.js';
 import { renderCSV } from './renderers/csv.js';
 import { renderJSON } from './renderers/json.js';
-import { renderTabular } from './renderers/table.js';
+import { renderMarkdownTable } from './renderers/markdown-table.js';
 
 import { 
   compileTagFilterExpressions, 
@@ -68,7 +67,7 @@ arg_parser.add_argument('-U', '--unchecked', {
 
 arg_parser.add_argument('-o', '--out', {
   required: false,
-  default: 'tabular',
+  default: 'table',
   choices: ['table', 'csv', 'json'],
   help: 'set output format'
 });
@@ -150,8 +149,12 @@ const render_opts: RenderOpts = {
 const render_fn = ({
   json: renderJSON,
   csv: renderCSV,
-  table: renderTabular,
-} satisfies Record<string, RenderItemsFn>)[cli_args.out as string] ?? renderTabular;
+  table: renderMarkdownTable,
+} satisfies Record<string, RenderItemsFn>)[cli_args.out as string];
+
+if (!render_fn) {
+  throw new Error(`Unsupported output format "${cli_args.out}"`);
+}
 
 // ============================================================================
 //                              RENDERING HELPER

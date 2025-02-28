@@ -78,7 +78,7 @@ const buildColumnDescriptors = (show_tags: string[]): ColumnDescriptor[] => {
  * If the "text" tag is selected for display, longer values are truncated and
  * ellipsed in a best-effort to fit each line within the width of the terminal.
  */
-export const renderTabular: RenderItemsFn = (items, show_tags, opts) => {
+export const renderMarkdownTable: RenderItemsFn = (items, show_tags, opts) => {
 
   const { terminal_width } = opts;
 
