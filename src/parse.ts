@@ -15,7 +15,7 @@ import { gfmFromMarkdown } from 'mdast-util-gfm';
 import { frontmatterFromMarkdown } from 'mdast-util-frontmatter';
 
 import { extractTagsFromText, extractTagsFromYaml } from './tags.js';
-import { FOLDER_META_FILE, joinMergeWhitespace, normalizeWhitespace, SPACE } from './utils.js';
+import { DATE_REGEXP, FOLDER_META_FILE, joinMergeWhitespace, normalizeWhitespace, SPACE } from './utils.js';
 
 const WL_REGEXP = /^WL:(\d{1,2}(?:\.\d{1,2})?)[hH]\s/;
 
@@ -30,6 +30,13 @@ const collectTextDepthFirst = (root: Node | undefined, acc: string = ''): string
     return joinMergeWhitespace(acc, (root as Parent).children.map(child => collectTextDepthFirst(child, acc)).join(SPACE));
   }
   return acc;
+};
+
+const extractDateFromText = (text: string, tags: TagMap, tag_name: string = 'date') => {
+  const date_match = text.match(DATE_REGEXP);
+  if (date_match) {
+    tags[tag_name] = date_match[1].replaceAll('-', '');
+  }
 };
 
 const parseListItemNode = (node: ListItem, ctx: ParseFileContext, item: Task | Worklog | null) => {
@@ -73,12 +80,13 @@ const parseParentNode = (node: Parent, ctx: ParseFileContext, item: Task | Workl
 
 const parseHeadingNode = (node: Heading, ctx: ParseFileContext, item: Task | Worklog | null) => {
   let parent = ctx.heading;
-  while (parent && parent.depth > node.depth) {
+  while (parent && parent.depth >= node.depth) {
     parent = parent.parent;
   }
   const tags = parent ? { ...parent.tags } : {};
   const text = collectTextDepthFirst(node);
   extractTagsFromText(text, tags);
+  extractDateFromText(text, tags, 'date');
   ctx.heading = { depth: node.depth, tags, parent };
 };
 
@@ -126,8 +134,6 @@ const from_markdown_opts =  {
   mdastExtensions: [frontmatterFromMarkdown(['yaml']), gfmFromMarkdown()],
 };
 
-const DATE_IN_FILENAME_REGEXP = /(?:^|[^\d])(\d{8}|(?:\d{4}-\d{2}-\d{2}))(?:$|[^\d])/;
-
 export const parseFile = async (ctx: ParseFileContext) => {
   ctx.tasks.forEach((task) => {
     if (task.file === ctx.file) {
@@ -142,10 +148,7 @@ export const parseFile = async (ctx: ParseFileContext) => {
   try {
     const data = await readFile(ctx.file, { encoding: 'utf8' });
     const root_node = fromMarkdown(data, from_markdown_opts);
-    const date_match = ctx.file.match(DATE_IN_FILENAME_REGEXP);
-    if (date_match) {
-      ctx.tags['date'] = date_match[1].replaceAll('-', '');
-    }
+    extractDateFromText(ctx.file, ctx.tags, 'date');
     parseNode(root_node, ctx, null);
   } catch (err) {
     if ((err as any).code !== 'ENOENT') {

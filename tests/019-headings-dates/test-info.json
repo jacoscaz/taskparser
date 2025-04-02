@@ -1,0 +1,4 @@
+{
+  "description": "should capture tags from headings",
+  "argv": ["-t", "text,date"]
+}
